@@ -4,14 +4,17 @@
   "private": true,
   "main": "src/app.js",
   "scripts": {
-    "start": "node src/app.js",
-    "dev": "node src/app.js"
+    "start": "node scripts/start.js",
+    "dev": "node scripts/start.js",
+    "db:init": "node scripts/init-db.js",
+    "db:check": "node scripts/db-check.js"
   },
   "dependencies": {
     "koa": "^2.15.0",
     "koa-router": "^12.0.0",
     "koa-bodyparser": "^4.4.0",
     "koa2-cors": "^2.0.6",
-    "mysql2": "^3.9.7"
+    "mysql2": "^3.9.7",
+    "dotenv": "^16.4.5"
   }
 }
