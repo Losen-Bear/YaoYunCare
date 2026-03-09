@@ -7,6 +7,7 @@ router.get('/', async (ctx) => {
   ctx.body = 'API 正常运行';
 });
 router.post('/api/constitution/judge', constitutionController.judge);
+router.post('/api/constitution/judge-with-recipes', constitutionController.judgeWithRecipes);
 router.get('/api/recipe/list', recipeController.getRecipe);
 router.get('/api/recipe/material', recipeController.getMaterial);
 router.get('/api/health/check', async (ctx) => {
