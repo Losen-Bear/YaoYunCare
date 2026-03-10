@@ -1,0 +1,8 @@
+{
+  "pages": [
+    "pages/demo/index"
+  ],
+  "window": {
+    "navigationBarTitleText": "YaoYunCare"
+  }
+}
