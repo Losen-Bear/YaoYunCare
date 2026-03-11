@@ -1,0 +1,24 @@
+<view class="container">
+  <view class="header">判定结果：{{main}}</view>
+  <view class="sub">以下为对应体质的详细信息</view>
+  <block wx:for="{{types}}" wx:key="*this">
+    <view class="card">
+      <view class="title">{{item}}</view>
+      <view class="content">{{infos[item]}}</view>
+      <view wx:if="{{grouped[item] && grouped[item].length}}">
+        <view class="sub">推荐食谱</view>
+        <block wx:for="{{grouped[item]}}" wx:key="id">
+          <view class="recipe">
+            <view class="r-name">{{item.name}}</view>
+            <video wx:if="{{item.video_url}}" class="video" src="{{item.video_url}}" controls></video>
+            <view class="r-section">食材：{{item.ingredients && item.ingredients.join('、')}}</view>
+            <view class="r-section">步骤：{{item.steps && item.steps.join('；')}}</view>
+          </view>
+        </block>
+      </view>
+    </view>
+  </block>
+  <view class="actions">
+    <button bindtap="goBack">返回评估</button>
+  </view>
+</view>

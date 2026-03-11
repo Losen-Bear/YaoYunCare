@@ -1,0 +1,25 @@
+<view class="container">
+  <view class="title">欢迎来到体质评估</view>
+  <view class="desc">请先完成微信登录并填写基础信息</view>
+  <view class="card">
+    <view class="section-title">基础信息</view>
+    <view class="form-item">
+      <view class="label">性别</view>
+      <radio-group data-field="gender" bindchange="onProfileRadio">
+        <label class="radio"><radio value="男" checked="{{gender==='男'}}" />男</label>
+        <label class="radio"><radio value="女" checked="{{gender==='女'}}" />女</label>
+      </radio-group>
+    </view>
+    <view class="form-item">
+      <view class="label">年龄</view>
+      <radio-group data-field="age" bindchange="onProfileRadio">
+        <label class="radio"><radio value="12-18岁" checked="{{age==='12-18岁'}}" />12-18岁</label>
+        <label class="radio"><radio value="18-30岁" checked="{{age==='18-30岁'}}" />18-30岁</label>
+        <label class="radio"><radio value="31-45岁" checked="{{age==='31-45岁'}}" />31-45岁</label>
+        <label class="radio"><radio value="46-60岁" checked="{{age==='46-60岁'}}" />46-60岁</label>
+        <label class="radio"><radio value="60岁以上" checked="{{age==='60岁以上'}}" />60岁以上</label>
+      </radio-group>
+    </view>
+  </view>
+  <button class="primary" bindtap="onStart" disabled="{{!gender || !age}}">微信登录并开始检测</button>
+</view>

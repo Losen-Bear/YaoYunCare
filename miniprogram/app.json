@@ -1,5 +1,8 @@
 {
   "pages": [
+    "pages/welcome/index",
+    "pages/assessment/index",
+    "pages/constitution/index",
     "pages/demo/index"
   ],
   "window": {

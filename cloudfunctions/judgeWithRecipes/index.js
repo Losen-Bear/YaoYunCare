@@ -9,7 +9,14 @@ function normalizeAnswers(answers) {
     if (typeof v === 'boolean') return v
     if (typeof v === 'number') return v > 0
     if (typeof v === 'string') { const s = v.trim().toLowerCase(); return s === '是' || s === 'yes' || s === 'true' || s === '1' }
-    if (v && typeof v === 'object') { const val = v.answer ?? v.value ?? v.v ?? v.checked; return toBool(val) }
+    if (v && typeof v === 'object') {
+      let val
+      if (Object.prototype.hasOwnProperty.call(v, 'answer')) val = v.answer
+      else if (Object.prototype.hasOwnProperty.call(v, 'value')) val = v.value
+      else if (Object.prototype.hasOwnProperty.call(v, 'v')) val = v.v
+      else if (Object.prototype.hasOwnProperty.call(v, 'checked')) val = v.checked
+      return toBool(val)
+    }
     return false
   }
   const boolMap = {}
@@ -36,14 +43,19 @@ function scoreByQuestionnaire(answers) {
 }
 exports.main = async (event) => {
   try {
+    const wxContext = cloud.getWXContext()
+    const passedOpenid = event && event.openid ? String(event.openid) : ''
+    if (!passedOpenid || !wxContext || !wxContext.OPENID || passedOpenid !== wxContext.OPENID) {
+      return { code: 401, message: '未授权或身份不一致', data: null }
+    }
     const { symptoms, answers } = event || {}
     let result = null
     if (answers !== undefined) result = scoreByQuestionnaire(answers)
     else if (Array.isArray(symptoms)) result = { mainConstitution: '', matchDetail: [], decision: { type: 'na', topGap: 0 }, primary: [] }
     else return { code: 400, message: '参数错误', data: null }
     let targets = []
-    if (Array.isArray(result?.primary) && result.primary.length > 0) targets = result.primary
-    else if (typeof result?.mainConstitution === 'string' && result.mainConstitution.length > 0) targets = result.mainConstitution.split('+').map((s) => s.trim()).filter(Boolean)
+    if (result && Array.isArray(result.primary) && result.primary.length > 0) targets = result.primary
+    else if (result && typeof result.mainConstitution === 'string' && result.mainConstitution.length > 0) targets = result.mainConstitution.split('+').map((s) => s.trim()).filter(Boolean)
     const recipes = {}
     for (const t of targets) {
       try {
@@ -51,12 +63,13 @@ exports.main = async (event) => {
         const list = (r.data || []).map((doc) => {
           const ingredients = Array.isArray(doc.ingredients) ? doc.ingredients : []
           const steps = Array.isArray(doc.steps) ? doc.steps : []
-          return { id: doc.id || doc._id || '', name: doc.name || '', constitution: t, ingredients, steps }
+          const video_url = doc.video_url || doc.videoUrl || ''
+          return { id: doc.id || doc._id || '', name: doc.name || '', constitution: t, ingredients, steps, video_url }
         })
         recipes[t] = list
       } catch { recipes[t] = [] }
     }
     const merged = Object.values(recipes).flat()
     return { code: 200, message: '成功', data: { result, recipes, merged } }
-  } catch { return { code: 500, message: '服务异常', data: null } }
+  } catch (e) { return { code: 500, message: '服务异常', data: null } }
 }
