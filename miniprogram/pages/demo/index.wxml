@@ -1,0 +1,8 @@
+<view class="container">
+  <button bindtap="runDemo">测试判定+食谱</button>
+  <view>主判定：{{result.mainConstitution}}</view>
+  <view wx:if="{{recipesList.length}}">
+    <view>推荐食谱：</view>
+    <view wx:for="{{recipesList}}" wx:key="id">{{item.name}}</view>
+  </view>
+</view>

@@ -1,0 +1,42 @@
+<view class="container">
+  <view class="hero-card">
+    <view class="big">你的体质：{{main}}</view>
+    <view class="score">体质匹配度：{{percent}}%</view>
+  </view>
+  <block wx:for="{{types}}" wx:key="*this">
+    <view class="card">
+      <view class="title">{{item}}</view>
+      <view class="content">{{infos[item]}}</view>
+      <view class="sub">体质解读</view>
+      <view class="content">
+        <view>典型表现：{{detailTextMap[item] && detailTextMap[item].b}}</view>
+        <view>身体倾向：{{detailTextMap[item] && detailTextMap[item].q}}</view>
+        <view>性格与作息：{{detailTextMap[item] && detailTextMap[item].x}}</view>
+      </view>
+      <view class="sub">养生建议</view>
+      <view class="content">
+        <view>宜吃：{{guideTextMap[item] && guideTextMap[item].eat}}</view>
+        <view>忌吃：{{guideTextMap[item] && guideTextMap[item].avoid}}</view>
+        <view>宜做运动：{{guideTextMap[item] && guideTextMap[item].sport}}</view>
+        <view>少做：{{guideTextMap[item] && guideTextMap[item].less}}</view>
+      </view>
+      <view wx:if="{{grouped[item] && grouped[item].length}}">
+        <view class="sub">为你推荐 · 专属药膳</view>
+        <block wx:for="{{grouped[item]}}" wx:key="id">
+          <view class="recipe">
+            <view class="r-name">{{item.name}}</view>
+            <video wx:if="{{item.video_url}}" class="video" src="{{item.video_url}}" controls></video>
+            <view class="r-section">食材：{{item.ingredientsText}}</view>
+            <view class="r-section">步骤：{{item.stepsText}}</view>
+            <button size="mini" data-id="{{item.id}}" bindtap="goDetail">查看做法</button>
+          </view>
+        </block>
+      </view>
+    </view>
+  </block>
+  <view class="actions">
+    <button bindtap="retest">重新检测</button>
+    <button type="primary" bindtap="saveReport">保存报告</button>
+    <button bindtap="goBack">返回</button>
+  </view>
+</view>
