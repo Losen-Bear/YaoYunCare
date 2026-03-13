@@ -30,7 +30,13 @@ function scoreByQuestionnaire(answers) {
     { name: '痰湿质', q: [14, 15, 16] }, { name: '湿热质', q: [17, 18, 19] }, { name: '血瘀质', q: [20, 21, 22] },
     { name: '气郁质', q: [23, 24, 25] }, { name: '特禀质', q: [26, 27, 28] }
   ]
-  const detail = groups.map((g) => { const count = g.q.reduce((sum, q) => sum + (a[q] ? 1 : 0), 0); return { constitution: g.name, count } })
+  const detail = groups.map((g) => {
+    const present = g.q.filter((q) => Object.prototype.hasOwnProperty.call(a, q))
+    const denom = present.length
+    const t = present.reduce((sum, q) => sum + (a[q] ? 1 : 0), 0)
+    const count = denom > 0 ? Math.round((t / denom) * 3) : 0
+    return { constitution: g.name, count }
+  })
   const allZero = detail.every((d) => d.count === 0)
   if (allZero) return { mainConstitution: '平和质', matchDetail: detail, decision: { type: 'neutral', topGap: 0 }, primary: [] }
   const sorted = [...detail].sort((x, y) => y.count - x.count)

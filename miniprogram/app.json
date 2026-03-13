@@ -1,11 +1,30 @@
 {
   "pages": [
-    "pages/welcome/index",
+    "pages/home/index",
     "pages/assessment/index",
     "pages/constitution/index",
+    "pages/recipes/index",
+    "pages/recipe-detail/index",
+    "pages/profile/index",
+    "pages/welcome/index",
     "pages/demo/index"
   ],
   "window": {
-    "navigationBarTitleText": "YaoYunCare"
+    "navigationBarTitleText": "养生药膳",
+    "navigationBarBackgroundColor": "#0b2b1e",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#ffffff",
+    "backgroundTextStyle": "light"
+  },
+  "tabBar": {
+    "backgroundColor": "#0b2b1e",
+    "borderStyle": "black",
+    "color": "#c9d1c8",
+    "selectedColor": "#9be3b0",
+    "list": [
+      { "pagePath": "pages/home/index", "text": "首页" },
+      { "pagePath": "pages/recipes/index", "text": "药膳馆" },
+      { "pagePath": "pages/profile/index", "text": "我的" }
+    ]
   }
 }

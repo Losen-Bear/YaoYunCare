@@ -1,71 +1,47 @@
 <view class="container">
-  <view class="title-main">中医体质判断调查问卷</view>
-  <view class="desc">以下题目请依据最近1个月的真实感受作答。</view>
-  <view class="card">
-    <view class="section-title">基本信息</view>
-    <view class="form-item">
-      <view class="label">1. 请问您的性别？</view>
-      <radio-group data-field="gender" bindchange="onProfileRadio">
-        <label class="radio"><radio value="男" checked="{{profile.gender==='男'}}" />男</label>
-        <label class="radio"><radio value="女" checked="{{profile.gender==='女'}}" />女</label>
-      </radio-group>
-    </view>
-    <view class="form-item">
-      <view class="label">2. 请问您的年龄？</view>
-      <radio-group data-field="age" bindchange="onProfileRadio">
-        <label class="radio"><radio value="12-18岁" checked="{{profile.age==='12-18岁'}}" />12-18岁</label>
-        <label class="radio"><radio value="18-30岁" checked="{{profile.age==='18-30岁'}}" />18-30岁</label>
-        <label class="radio"><radio value="31-45岁" checked="{{profile.age==='31-45岁'}}" />31-45岁</label>
-        <label class="radio"><radio value="46-60岁" checked="{{profile.age==='46-60岁'}}" />46-60岁</label>
-        <label class="radio"><radio value="60岁以上" checked="{{profile.age==='60岁以上'}}" />60岁以上</label>
-      </radio-group>
-    </view>
-    <view class="form-item">
-      <view class="label">3. 请问您的日常饮食习惯（可多选）？</view>
-      <checkbox-group bindchange="onProfileCheckbox">
-        <label class="radio"><checkbox value="偏辛辣" checked="{{profile.diet.indexOf('偏辛辣')>-1}}" />偏辛辣</label>
-        <label class="radio"><checkbox value="偏油腻" checked="{{profile.diet.indexOf('偏油腻')>-1}}" />偏油腻</label>
-        <label class="radio"><checkbox value="偏生冷" checked="{{profile.diet.indexOf('偏生冷')>-1}}" />偏生冷</label>
-        <label class="radio"><checkbox value="偏甜腻" checked="{{profile.diet.indexOf('偏甜腻')>-1}}" />偏甜腻</label>
-        <label class="radio"><checkbox value="无明显偏好" checked="{{profile.diet.indexOf('无明显偏好')>-1}}" />无明显偏好</label>
-      </checkbox-group>
-    </view>
-    <view class="form-item">
-      <view class="label">4. 请问您的每周运动频率？</view>
-      <radio-group data-field="exercise" bindchange="onProfileRadio">
-        <label class="radio"><radio value="几乎不运动" checked="{{profile.exercise==='几乎不运动'}}" />几乎不运动</label>
-        <label class="radio"><radio value="1-2次" checked="{{profile.exercise==='1-2次'}}" />1-2次</label>
-        <label class="radio"><radio value="3-5次" checked="{{profile.exercise==='3-5次'}}" />3-5次</label>
-        <label class="radio"><radio value="每天运动" checked="{{profile.exercise==='每天运动'}}" />每天运动</label>
-      </radio-group>
+  <view class="top">
+    <view class="back" bindtap="goBack">返回</view>
+    <view class="title-main">中医体质自测</view>
+  </view>
+  <view class="progress">
+    <view class="text">第{{cur+1}}题 / {{total}}题</view>
+    <view class="bar">
+      <view class="bar-inner" style="width: {{(cur+1)/total*100}}%"></view>
     </view>
   </view>
-  <view class="card">
-    <view class="section-title">核心判定题（是=1，否=0）</view>
+  <swiper class="swiper" current="{{cur}}" bindchange="onSwiperChange" circular="{{false}}" duration="200">
     <block wx:for="{{qList}}" wx:key="id">
-      <view class="qa-item">
-        <view class="q">{{index+5}}. {{item.text}}</view>
-        <radio-group class="opts" data-qid="{{item.id}}" bindchange="onRadioChange">
-          <label class="radio"><radio value="1" checked="{{answers[item.id]===true}}" />是</label>
-          <label class="radio"><radio value="0" checked="{{answers[item.id]===false && answers[item.id]!==undefined}}" />否</label>
-        </radio-group>
-      </view>
+      <swiper-item>
+        <view class="qa">
+          <view class="q">{{item.text}}</view>
+          <block wx:if="{{item.type==='yn'}}">
+            <radio-group class="opts" data-qid="{{item.id}}" bindchange="onYN" catchtouchstart="stopSwiper" catchtouchmove="stopSwiper">
+              <label class="radio"><radio value="1" checked="{{answersYN[item.id]===true}}" />是</label>
+              <label class="radio"><radio value="0" checked="{{answersYN[item.id]===false}}" />否</label>
+            </radio-group>
+          </block>
+          <block wx:elif="{{item.type==='single'}}">
+            <radio-group class="opts" bindchange="onSingle" catchtouchstart="stopSwiper" catchtouchmove="stopSwiper">
+              <label class="radio"><radio value="几乎不运动" checked="{{profile.exercise==='几乎不运动'}}" />几乎不运动</label>
+              <label class="radio"><radio value="1-2次" checked="{{profile.exercise==='1-2次'}}" />1-2次</label>
+              <label class="radio"><radio value="3-5次" checked="{{profile.exercise==='3-5次'}}" />3-5次</label>
+              <label class="radio"><radio value="每天运动" checked="{{profile.exercise==='每天运动'}}" />每天运动</label>
+            </radio-group>
+          </block>
+          <block wx:elif="{{item.type==='multi'}}">
+            <checkbox-group class="opts" catchtouchstart="stopSwiper" catchtouchmove="stopSwiper">
+              <label class="radio" data-val="偏辛辣" catchtap="toggleDiet"><checkbox value="偏辛辣" checked="{{profile.diet.indexOf('偏辛辣')>=0}}" />偏辛辣</label>
+              <label class="radio" data-val="偏油腻" catchtap="toggleDiet"><checkbox value="偏油腻" checked="{{profile.diet.indexOf('偏油腻')>=0}}" />偏油腻</label>
+              <label class="radio" data-val="偏生冷" catchtap="toggleDiet"><checkbox value="偏生冷" checked="{{profile.diet.indexOf('偏生冷')>=0}}" />偏生冷</label>
+              <label class="radio" data-val="偏甜腻" catchtap="toggleDiet"><checkbox value="偏甜腻" checked="{{profile.diet.indexOf('偏甜腻')>=0}}" />偏甜腻</label>
+              <label class="radio" data-val="无明显偏好" catchtap="toggleDiet"><checkbox value="无明显偏好" checked="{{profile.diet.indexOf('无明显偏好')>=0}}" />无明显偏好</label>
+            </checkbox-group>
+          </block>
+        </view>
+      </swiper-item>
     </block>
-  </view>
+  </swiper>
   <view class="actions">
-    <button type="primary" bindtap="onSubmit">提交评估</button>
-    <button bindtap="onReset">重置</button>
-  </view>
-  <view wx:if="{{result.mainConstitution}}" class="result">
-    <view class="title">判定结果：{{result.mainConstitution}}</view>
-    <view class="subtitle">推荐食谱</view>
-    <block wx:for="{{recipesList}}" wx:key="id">
-      <view class="recipe">
-        <view class="name">{{item.name}}</view>
-        <video wx:if="{{item.video_url}}" class="video" src="{{item.video_url}}" controls></video>
-        <view class="section">食材：{{item.ingredients && item.ingredients.join('、')}}</view>
-        <view class="section">步骤：{{item.steps && item.steps.join('；')}}</view>
-      </view>
-    </block>
+    <button type="primary" bindtap="onSubmit" disabled="{{!allAnswered}}">提交检测</button>
   </view>
 </view>
