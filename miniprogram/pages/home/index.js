@@ -1,13 +1,40 @@
 const { request } = require('../../utils/request')
 Page({
   data: {
-    banners: ['测体质，领你的专属药膳', '春季养肝 · 祛湿健脾', '今日宜吃：山药、红枣、茯苓'],
+    banners: [
+      { src: '/assets/home/main-assessment.png', text: '测体质，领你的专属药膳' },
+      { src: '/assets/home/main-season.png', text: '春季养肝 · 祛湿健脾' },
+      { src: '/assets/home/main-today.png', text: '今日宜吃：山药、红枣、茯苓' }
+    ],
+    swiperHeight: 420,
     todayRecommend: [],
     constitutions: ['气虚', '阴虚', '阳虚', '痰湿', '湿热', '血瘀', '气郁', '特禀', '平和'],
     hotCategories: ['补气', '补血', '祛湿', '清热', '安神', '美容', '养胃']
   },
   onLoad() {
     this.loadTodayRecommend()
+  },
+  onLogoError() {
+    this.setData({ logoError: true })
+  },
+  onBannerTap(e) {
+    const idx = Number(e.currentTarget.dataset.index || 0)
+    if (idx === 0) { this.goAssessment(); return }
+    if (idx === 1) { this.goSeasonGuide(); return }
+    this.goMyRecipes()
+  },
+  onBannerError(e) {
+    const idx = Number(e.currentTarget.dataset.index || 0)
+    this.setData({ [`banners[${idx}].error`]: true })
+  },
+  onBannerLoad(e) {
+    const w = Number(e && e.detail && e.detail.width) || 0
+    const h = Number(e && e.detail && e.detail.height) || 0
+    if (w > 0 && h > 0) {
+      const ratio = h / w
+      const heightRpx = Math.round(750 * ratio)
+      this.setData({ swiperHeight: heightRpx })
+    }
   },
   loadTodayRecommend() {
     let payload = {}

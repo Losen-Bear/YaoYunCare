@@ -1,16 +1,23 @@
 <view class="page">
   <view class="topbar">
-    <view class="left">YY</view>
+    <view class="left">
+      <image class="left-logo" src="/assets/icons/logo-yy.png" mode="aspectFit" lazy-load="true" binderror="onLogoError"></image>
+      <block wx:if="{{logoError}}">YY</block>
+    </view>
     <view class="title">养生药膳</view>
     <view class="right">
-      <view class="bell" bindtap="goMessages">𖠿</view>
       <view class="avatar" bindtap="goProfile"></view>
     </view>
   </view>
   <view class="banner">
-    <swiper indicator-dots autoplay interval="5000" circular>
+    <swiper indicator-dots autoplay interval="5000" circular style="height: {{swiperHeight}}rpx;">
       <swiper-item wx:for="{{banners}}" wx:key="*this">
-        <view class="banner-item">{{item}}</view>
+        <block wx:if="{{!item.error}}">
+          <image class="banner-image" src="{{item.src}}" mode="widthFix" lazy-load="true" bindtap="onBannerTap" binderror="onBannerError" bindload="onBannerLoad" data-index="{{index}}"></image>
+        </block>
+        <block wx:else>
+          <view class="banner-item" style="height: {{swiperHeight}}rpx;" bindtap="onBannerTap" data-index="{{index}}">{{item.text}}</view>
+        </block>
       </swiper-item>
     </swiper>
   </view>
@@ -38,7 +45,7 @@
     <view wx:else class="empty">暂无推荐</view>
   </view>
   <view class="section">
-    <view class="section-title">九大体质快速入口</view>
+    <view class="section-title ink-title text-center">九大体质快速入口</view>
     <view class="grid">
       <block wx:for="{{constitutions}}" wx:key="*this">
         <view class="grid-item" bindtap="goConstitution" data-type="{{item}}">{{item}}</view>

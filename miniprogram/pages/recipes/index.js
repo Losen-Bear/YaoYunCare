@@ -1,3 +1,4 @@
+const { getRecipeImage, defaultCover } = require('../../utils/image')
 Page({
   data: {
     keyword: '',
@@ -5,21 +6,30 @@ Page({
     activeTag: '',
     constitutionFilter: '',
     allRecipes: [],
-    list: []
+    list: [],
+    defaultCover
   },
   onLoad() {
     const base = [
-      { id: 'r1', name: '黄芪党参鸡汤', constitution: '气虚', effect: '益气健脾', difficulty: '中', time: '60min' },
-      { id: 'r2', name: '薏米赤小豆粥', constitution: '痰湿', effect: '健脾祛湿', difficulty: '易', time: '40min' },
-      { id: 'r3', name: '百合莲子羹', constitution: '阴虚', effect: '养阴安神', difficulty: '易', time: '25min' },
-      { id: 'r4', name: '枸杞红枣粥', constitution: '血瘀', effect: '补血活血', difficulty: '易', time: '30min' },
-      { id: 'r5', name: '冬瓜薏米汤', constitution: '湿热', effect: '清热利湿', difficulty: '易', time: '45min' },
-      { id: 'r6', name: '党参麦冬茶', constitution: '气郁', effect: '疏肝解郁', difficulty: '易', time: '10min' }
+      { id: 'r1', name: '黄芪党参鸡汤', constitution: '气虚', effect: '益气健脾', difficulty: '中', time: '60min', image_url: getRecipeImage('黄芪党参鸡汤') },
+      { id: 'r2', name: '薏米赤小豆粥', constitution: '痰湿', effect: '健脾祛湿', difficulty: '易', time: '40min', image_url: getRecipeImage('薏米赤小豆粥') },
+      { id: 'r3', name: '百合莲子羹', constitution: '阴虚', effect: '养阴安神', difficulty: '易', time: '25min', image_url: getRecipeImage('百合莲子羹') },
+      { id: 'r4', name: '枸杞红枣粥', constitution: '血瘀', effect: '补血活血', difficulty: '易', time: '30min', image_url: getRecipeImage('枸杞红枣粥') },
+      { id: 'r5', name: '冬瓜薏米汤', constitution: '湿热', effect: '清热利湿', difficulty: '易', time: '45min', image_url: getRecipeImage('冬瓜薏米汤') },
+      { id: 'r6', name: '党参麦冬茶', constitution: '气郁', effect: '疏肝解郁', difficulty: '易', time: '10min', image_url: getRecipeImage('党参麦冬茶') }
     ]
     try {
       const last = wx.getStorageSync('lastJudgeResult') || {}
       const list = Array.isArray(last.recipes) ? last.recipes : []
-      const merged = list.map((x, i) => ({ id: x.id || `m${i}`, name: x.name || '', constitution: x.constitution || '', effect: x.effect || '', difficulty: x.difficulty || '中', time: x.time || '30min' }))
+      const merged = list.map((x, i) => ({
+        id: x.id || `m${i}`,
+        name: x.name || '',
+        constitution: x.constitution || '',
+        effect: x.effect || '',
+        difficulty: x.difficulty || '中',
+        time: x.time || '30min',
+        image_url: getRecipeImage(x.name || '')
+      }))
       const all = [...merged, ...base]
       this.setData({ allRecipes: all })
       try { wx.setStorageSync('allRecipes', all) } catch (_) {}

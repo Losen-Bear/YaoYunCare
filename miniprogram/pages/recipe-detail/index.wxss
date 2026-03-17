@@ -1,8 +1,8 @@
 .header{padding:16rpx;text-align:center}
-.cover{width:100%;height:220rpx;background:#f1f5f1;border-radius:12rpx;margin-bottom:12rpx}
-.title{font-size:32rpx;font-weight:600;margin-bottom:6rpx}
+.cover{width:100%;height:220rpx;background:#EDE4D5;border-radius:12rpx;margin-bottom:12rpx}
+.title{font-size:34rpx;font-weight:600;margin-bottom:6rpx}
 .meta{color:#666}
-.section{background:#fff;margin:12rpx 16rpx;padding:16rpx;border-radius:12rpx;border:1px solid #f0f0f0}
-.section-title{font-weight:600;margin-bottom:8rpx}
-.item{line-height:1.6;color:#333;margin-bottom:6rpx}
-.actions{display:flex;gap:12rpx;position:sticky;bottom:0;background:#fff;padding:12rpx 16rpx;border-top:1px solid #f0f0f0}
+.section{background:#FCFAF3;margin:12rpx 16rpx;padding:16rpx;border-radius:12rpx;border:1px solid #E0D6C2}
+.section-title{font-weight:600;margin-bottom:8rpx;text-align:center}
+.item{line-height:1.6;color:#2F2F2F;margin-bottom:6rpx}
+.actions{display:flex;gap:12rpx;position:sticky;bottom:0;background:#FCFAF3;padding:12rpx 16rpx;border-top:1px solid #E0D6C2}

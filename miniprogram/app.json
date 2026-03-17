@@ -11,16 +11,16 @@
   ],
   "window": {
     "navigationBarTitleText": "养生药膳",
-    "navigationBarBackgroundColor": "#0b2b1e",
+    "navigationBarBackgroundColor": "#2F5E3D",
     "navigationBarTextStyle": "white",
-    "backgroundColor": "#ffffff",
+    "backgroundColor": "#F8F5EF",
     "backgroundTextStyle": "light"
   },
   "tabBar": {
-    "backgroundColor": "#0b2b1e",
+    "backgroundColor": "#2F5E3D",
     "borderStyle": "black",
-    "color": "#c9d1c8",
-    "selectedColor": "#9be3b0",
+    "color": "#D7CBB2",
+    "selectedColor": "#C8AD66",
     "list": [
       { "pagePath": "pages/home/index", "text": "首页" },
       { "pagePath": "pages/recipes/index", "text": "药膳馆" },

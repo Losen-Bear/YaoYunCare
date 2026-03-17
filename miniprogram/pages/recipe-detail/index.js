@@ -1,8 +1,10 @@
+const { getRecipeImage, defaultCover } = require('../../utils/image')
 Page({
   data: {
     id: '',
     recipe: { name: '', constitution: '', ingredients: [], steps: [], effect: '', taboo: '', suitable: '', unsuitable: '' },
-    fav: false
+    fav: false,
+    defaultCover
   },
   onLoad(options) {
     const id = options && options.id ? String(options.id) : ''
@@ -16,6 +18,7 @@ Page({
     if (!recipe) {
       recipe = { id, name: '药膳', constitution: '', ingredients: [], steps: [], effect: '', difficulty: '中', time: '30min' }
     }
+    recipe.image_url = getRecipeImage(recipe.name)
     this.setData({ recipe })
     this.syncFav()
   },
