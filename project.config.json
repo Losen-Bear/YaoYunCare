@@ -14,15 +14,32 @@
       "outputPath": ""
     },
     "useCompilerPlugins": false,
-    "minifyWXML": true
+    "minifyWXML": true,
+    "compileWorklet": false,
+    "uploadWithSourceMap": false,
+    "packNpmManually": false,
+    "minifyWXSS": true,
+    "localPlugins": false,
+    "disableUseStrict": false,
+    "condition": false,
+    "swc": false,
+    "disableSWC": true
   },
   "compileType": "miniprogram",
   "simulatorPluginLibVersion": {},
   "packOptions": {
-    "ignore": [],
+    "ignore": [
+      { "type": "glob", "value": "node_modules/**" },
+      { "type": "glob", "value": "cloudfunctions/**" },
+      { "type": "glob", "value": "server/**" },
+      { "type": "glob", "value": "src/**" },
+      { "type": "glob", "value": "docs/**" },
+      { "type": "glob", "value": "*.log" }
+    ],
     "include": []
   },
   "appid": "wx0aae92b42815bc52",
   "editorSetting": {},
-  "cloudfunctionTemplateRoot": "cloudfunctionTemplate/"
+  "cloudfunctionTemplateRoot": "cloudfunctionTemplate/",
+  "libVersion": "3.14.3"
 }

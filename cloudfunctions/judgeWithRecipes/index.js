@@ -1,6 +1,29 @@
 const cloud = require('wx-server-sdk')
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 const db = cloud.database()
+const REMOVED_RECIPE_NAMES = new Set(['冬瓜排骨海带汤'])
+
+function normalizeFileID(v) {
+  if (typeof v !== 'string') return ''
+  let id = v.trim()
+  if ((id.startsWith('"') && id.endsWith('"')) || (id.startsWith("'") && id.endsWith("'"))) {
+    id = id.slice(1, -1).trim()
+  }
+  if (/^cloud:\/[^/]/i.test(id)) {
+    id = id.replace(/^cloud:\//i, 'cloud://')
+  }
+  if (id.startsWith('cloud://')) {
+    id = id.replace(/\s+/g, '')
+  }
+  return id
+}
+
+function pickFileID(doc) {
+  if (!doc || typeof doc !== 'object') return ''
+  const raw = doc.imageFileID || doc.fileID || doc.FileID || doc.image_url || ''
+  return normalizeFileID(raw)
+}
+
 function normalizeAnswers(answers) {
   const map = {}
   if (Array.isArray(answers)) { answers.forEach((v, i) => { const idx = i + 1; map[idx] = v }) }
@@ -23,6 +46,7 @@ function normalizeAnswers(answers) {
   Object.keys(map).forEach((k) => { const v = map[k]; boolMap[Number(k)] = toBool(v) })
   return boolMap
 }
+
 function scoreByQuestionnaire(answers) {
   const a = normalizeAnswers(answers)
   const groups = [
@@ -47,10 +71,88 @@ function scoreByQuestionnaire(answers) {
   if (gap >= 2) return { mainConstitution: top.constitution, matchDetail: detail, decision: { type: 'single', topGap: gap }, primary: [top.constitution] }
   return { mainConstitution: `${top.constitution}+${second.constitution}`, matchDetail: detail, decision: { type: 'mixed', topGap: gap }, primary: [top.constitution, second.constitution] }
 }
+
+async function buildImageUrlMap(fileIDs) {
+  let urlMap = {}
+  if (Array.isArray(fileIDs) && fileIDs.length > 0) {
+    try {
+      const clean = fileIDs.map((id) => normalizeFileID(id)).filter(Boolean)
+      const resp = await cloud.getTempFileURL({ fileList: clean })
+      const arr = resp && Array.isArray(resp.fileList) ? resp.fileList : []
+      urlMap = arr.reduce((m, it) => {
+        const id = normalizeFileID(it && it.fileID ? it.fileID : '')
+        const url = it && it.tempFileURL ? it.tempFileURL : ''
+        if (id && url) m[id] = url
+        return m
+      }, {})
+    } catch (_) {}
+  }
+  return urlMap
+}
+
+async function fetchAllRecipes() {
+  const list = []
+  try {
+    const total = (await db.collection('recipe').count()).total || 0
+    const pageSize = 100
+    let skip = 0
+    while (skip < total) {
+      const r = await db.collection('recipe').skip(skip).limit(pageSize).get()
+      const docs = r.data || []
+      docs.forEach((doc) => list.push(doc))
+      skip += pageSize
+    }
+  } catch (_) {}
+  const fileIDs = list
+    .map((doc) => {
+      const id = pickFileID(doc)
+      return typeof id === 'string' && id.startsWith('cloud://') ? id : ''
+    })
+    .filter((id) => typeof id === 'string' && id.length > 0)
+  const urlMap = await buildImageUrlMap(fileIDs)
+  const mapped = list.map((doc) => {
+    let ingredients = []
+     if (Array.isArray(doc.ingredients)) ingredients = doc.ingredients
+     else if (typeof doc.ingredients === 'string') { 
+       try { ingredients = JSON.parse(doc.ingredients.replace(/'/g, '"')) } 
+       catch(_) { ingredients = doc.ingredients.split(/[,，\n]+/).map(s => s.trim()).filter(Boolean) } 
+     }
+     
+     let steps = []
+     if (Array.isArray(doc.steps)) steps = doc.steps
+     else if (typeof doc.steps === 'string') { 
+       try { steps = JSON.parse(doc.steps.replace(/'/g, '"')) } 
+       catch(_) { steps = doc.steps.split(/[\n]+/).map(s => s.trim()).filter(Boolean) } 
+     }
+
+    const video_url = doc.video_url || doc.videoUrl || ''
+    const idToMap = pickFileID(doc)
+    let image_url = idToMap && urlMap[idToMap] ? urlMap[idToMap] : (doc.image_url || idToMap || '')
+    return { 
+      id: doc.id || doc._id || '', 
+      name: doc.name || '', 
+      constitution: doc.constitution || '', 
+      ingredients, 
+      steps, 
+      video_url, 
+      image_url,
+      effect: doc.effect || '',
+      taboo: doc.taboo || '',
+      suitable: doc.suitable || '',
+      unsuitable: doc.unsuitable || ''
+    }
+  }).filter((item) => !REMOVED_RECIPE_NAMES.has(item && item.name ? item.name : ''))
+  return mapped
+}
+
 exports.main = async (event) => {
   try {
     const wxContext = cloud.getWXContext()
     const passedOpenid = event && event.openid ? String(event.openid) : ''
+    if (event && event.listAll) {
+      const all = await fetchAllRecipes()
+      return { code: 200, message: '成功', data: { result: null, recipes: { all }, merged: all } }
+    }
     if (!passedOpenid || !wxContext || !wxContext.OPENID || passedOpenid !== wxContext.OPENID) {
       return { code: 401, message: '未授权或身份不一致', data: null }
     }
@@ -66,11 +168,45 @@ exports.main = async (event) => {
     for (const t of targets) {
       try {
         const r = await db.collection('recipe').where({ constitution: t }).get()
-        const list = (r.data || []).map((doc) => {
-          const ingredients = Array.isArray(doc.ingredients) ? doc.ingredients : []
-          const steps = Array.isArray(doc.steps) ? doc.steps : []
+        const docs = (r.data || []).filter((doc) => !REMOVED_RECIPE_NAMES.has(doc && doc.name ? doc.name : ''))
+        const fileIDs = docs
+          .map((doc) => {
+            const id = pickFileID(doc)
+            return typeof id === 'string' && id.startsWith('cloud://') ? id : ''
+          })
+          .filter((id) => typeof id === 'string' && id.length > 0)
+        const urlMap = await buildImageUrlMap(fileIDs)
+        const list = docs.map((doc) => {
+          let ingredients = []
+           if (Array.isArray(doc.ingredients)) ingredients = doc.ingredients
+           else if (typeof doc.ingredients === 'string') { 
+             try { ingredients = JSON.parse(doc.ingredients.replace(/'/g, '"')) } 
+             catch(_) { ingredients = doc.ingredients.split(/[,，\n]+/).map(s => s.trim()).filter(Boolean) } 
+           }
+           
+           let steps = []
+           if (Array.isArray(doc.steps)) steps = doc.steps
+           else if (typeof doc.steps === 'string') { 
+             try { steps = JSON.parse(doc.steps.replace(/'/g, '"')) } 
+             catch(_) { steps = doc.steps.split(/[\n]+/).map(s => s.trim()).filter(Boolean) } 
+           }
+
           const video_url = doc.video_url || doc.videoUrl || ''
-          return { id: doc.id || doc._id || '', name: doc.name || '', constitution: t, ingredients, steps, video_url }
+          const idToMap = pickFileID(doc)
+          let image_url = idToMap && urlMap[idToMap] ? urlMap[idToMap] : (doc.image_url || idToMap || '')
+          return { 
+            id: doc.id || doc._id || '', 
+            name: doc.name || '', 
+            constitution: t, 
+            ingredients, 
+            steps, 
+            video_url, 
+            image_url,
+            effect: doc.effect || '',
+            taboo: doc.taboo || '',
+            suitable: doc.suitable || '',
+            unsuitable: doc.unsuitable || ''
+          }
         })
         recipes[t] = list
       } catch { recipes[t] = [] }

@@ -1,0 +1,13 @@
+<view class="container">
+  <view class="assistant-wrapper">
+    <!-- 这里预留给您之后提供的人物形象图片 -->
+    <image class="assistant-image" src="{{assistantImage || '/images/default-assistant.png'}}" mode="aspectFit"></image>
+  </view>
+  
+  <view class="chat-container">
+    <view class="welcome-msg">
+      <text>您好，我是您的专属药膳助手！请问有什么可以帮您？</text>
+    </view>
+    <!-- 这里可以后续添加对话列表或交互按钮 -->
+  </view>
+</view>
