@@ -1,0 +1,29 @@
+.page{padding-bottom:40rpx}
+.topbar{position:sticky;top:0;z-index:10;height:88rpx;background:#2F5E3D;color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 20rpx}
+.topbar .left{width:64rpx;height:64rpx;border-radius:12rpx;background:#C8AD66;color:#2F5E3D;display:flex;align-items:center;justify-content:center;font-weight:700;overflow:hidden}
+.topbar .left-logo{width:100%;height:100%;border-radius:12rpx}
+.topbar .title{font-size:34rpx;font-weight:600}
+.topbar .right{display:flex;align-items:center;gap:16rpx}
+.topbar .bell{width:40rpx;height:40rpx;display:flex;align-items:center;justify-content:center;font-size:28rpx;background:#224C3B;border-radius:8rpx}
+.topbar .avatar{width:44rpx;height:44rpx;border-radius:50%;background:#D7CBB2}
+.banner{margin:16rpx 16rpx 0}
+.banner-item{margin:10rpx 10rpx;background:#F1ECE2;border-radius:12rpx;color:#2F5E3D;display:flex;align-items:center;justify-content:center;font-weight:600}
+.banner-image{width:100%;margin:10rpx 10rpx;border-radius:12rpx;background:#F1ECE2}
+.actions{padding:16rpx;display:grid;grid-template-columns:1fr;row-gap:16rpx}
+.actions .row-2{display:grid;grid-template-columns:1fr 1fr;gap:16rpx}
+.sketch-btn{height:120rpx;display:flex;align-items:center;justify-content:center;background:#FCFAF3;color:#8F2B23;border-radius:18rpx;border:4rpx solid #8F2B23;font-size:38rpx;font-weight:700;letter-spacing:2rpx;box-shadow:0 0 0 4rpx rgba(143,43,35,0.15) inset}
+.sketch-btn:active{transform:scale(0.98)}
+.sketch-btn.main{background:#B9352A;color:#fff;border-color:#8F2B23;box-shadow:0 0 0 6rpx rgba(143,43,35,0.15) inset}
+.sketch-btn.small{font-size:34rpx;background:#B9352A;color:#fff;border-color:#8F2B23;box-shadow:0 0 0 6rpx rgba(143,43,35,0.15) inset}
+.section{margin:8rpx 16rpx;background:#FCFAF3;border-radius:12rpx;padding:16rpx;border:1px solid #E0D6C2;position:relative}
+.section-title{font-size:32rpx;font-weight:600;margin-bottom:12rpx;color:#2F2F2F;text-align:center}
+.recipe-card{display:flex;gap:12rpx;padding:12rpx;border:1px solid #E0D6C2;border-radius:12rpx;margin-bottom:12rpx;background:#FAF7F0}
+.recipe-card .cover{width:88rpx;height:88rpx;border-radius:8rpx;background:#EDE4D5}
+.recipe-card .info .name{font-size:30rpx;margin-bottom:6rpx}
+.recipe-card .info .desc{font-size:26rpx;color:#6B7280;margin-bottom:4rpx}
+.recipe-card .info .tag{font-size:24rpx;color:#8B8B8B}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12rpx}
+.grid-item{background:#F5F1E8;border:1px solid #E0D6C2;border-radius:12rpx;text-align:center;padding:16rpx 0;color:#2F5E3D;font-size:28rpx}
+.cats{display:flex;flex-wrap:wrap;gap:12rpx}
+.cat{background:#F1ECE2;color:#2F5E3D;border-radius:999px;padding:10rpx 16rpx;border:1px solid #E0D6C2;font-size:26rpx}
+.footer{text-align:center;color:#888;font-size:22rpx;margin:16rpx}

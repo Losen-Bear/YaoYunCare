@@ -1,0 +1,25 @@
+<view class="page">
+  <view class="search">
+    <input class="input" placeholder="搜食材/功效/菜名" placeholder-style="font-size: 26rpx; color: #8B8B8B" value="{{keyword}}" bindinput="onKeyword"/>
+  </view>
+  <scroll-view class="tags" scroll-x>
+    <view class="tag {{activeTag===''?'active':''}}" data-tag="" bindtap="onTag">全部</view>
+    <block wx:for="{{tags}}" wx:key="*this">
+      <view class="tag {{activeTag===item?'active':''}}" data-tag="{{item}}" bindtap="onTag">{{item}}</view>
+    </block>
+  </scroll-view>
+  <view wx:if="{{constitutionFilter}}" class="filter-pill">体质：{{constitutionFilter}} <text class="close" bindtap="clearConstitution">×</text></view>
+  <view class="list">
+    <block wx:for="{{list}}" wx:key="id">
+      <view class="card" bindtap="goDetail" data-id="{{item.id}}">
+        <image class="cover" src="{{item.image_url || defaultCover}}" mode="aspectFill" lazy-load="true"></image>
+        <view class="info">
+          <view class="title">{{item.name}}</view>
+          <view class="meta">{{item.effect || '调理'}} · 适合：{{item.constitution || '-'}}</view>
+          <view class="meta">{{item.difficulty || '中'}} · {{item.time || '30min'}}</view>
+        </view>
+      </view>
+    </block>
+    <view wx:if="{{!list.length}}" class="empty">暂无数据</view>
+  </view>
+</view>

@@ -1,0 +1,30 @@
+{
+  "pages": [
+    "pages/home/index",
+    "pages/assessment/index",
+    "pages/constitution/index",
+    "pages/recipes/index",
+    "pages/recipe-detail/index",
+    "pages/profile/index",
+    "pages/welcome/index",
+    "pages/demo/index"
+  ],
+  "window": {
+    "navigationBarTitleText": "养生药膳",
+    "navigationBarBackgroundColor": "#2F5E3D",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#F8F5EF",
+    "backgroundTextStyle": "light"
+  },
+  "tabBar": {
+    "backgroundColor": "#2F5E3D",
+    "borderStyle": "black",
+    "color": "#D7CBB2",
+    "selectedColor": "#C8AD66",
+    "list": [
+      { "pagePath": "pages/home/index", "text": "首页" },
+      { "pagePath": "pages/recipes/index", "text": "药膳馆" },
+      { "pagePath": "pages/profile/index", "text": "我的" }
+    ]
+  }
+}

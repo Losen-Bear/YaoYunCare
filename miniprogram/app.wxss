@@ -1,0 +1,8 @@
+page { background-color: #F7F3EA; color: #2A2A2A; font-family: "KaiTi","STKaiti","Songti SC","SimSun",serif; background-image: radial-gradient(rgba(0,0,0,0.03) 1px, transparent 1px), radial-gradient(rgba(0,0,0,0.02) 1px, transparent 1px); background-size: 6px 6px, 12px 12px; background-position: 0 0, 6px 6px; }
+.text-center { text-align: center; }
+.ink-title { font-family: "KaiTi","STKaiti","Songti SC","SimSun",serif; letter-spacing: 1rpx; }
+.paper-card { background: #FCFAF3; border: 1px solid #E0D6C2; border-radius: 12rpx; }
+.divider-ink { height: 1rpx; background: #2A2A2A; opacity: 0.2; }
+button[type="primary"] { background-color: #B9352A; color: #fff; border-color: #8F2B23; }
+.btn-cinnabar { background-color: #B9352A; color: #fff; border: 4rpx solid #8F2B23; box-shadow: 0 0 0 4rpx rgba(143,43,35,0.15) inset; }
+.v-stamp { position: absolute; left: 8rpx; top: 16rpx; background: #B9352A; color: #fff; padding: 10rpx 8rpx; border-radius: 6rpx; writing-mode: vertical-rl; letter-spacing: 2rpx; }

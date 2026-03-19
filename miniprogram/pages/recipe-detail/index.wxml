@@ -1,0 +1,29 @@
+<view class="page">
+  <view class="header">
+    <image class="cover" src="{{recipe.image_url || defaultCover}}" mode="aspectFill" lazy-load="true"></image>
+    <view class="title">{{recipe.name}}</view>
+    <view class="meta">{{recipe.effect || '调理'}} · 适合：{{recipe.constitution || '-'}}</view>
+  </view>
+  <view class="section">
+    <view class="section-title">食材清单</view>
+    <view wx:for="{{recipe.ingredients}}" wx:key="*this" class="item">{{item}}</view>
+  </view>
+  <view class="section">
+    <view class="section-title">步骤做法</view>
+    <view wx:for="{{recipe.steps}}" wx:key="*this" class="item">{{index+1}}. {{item}}</view>
+  </view>
+  <view class="section">
+    <view class="section-title">功效与禁忌</view>
+    <view class="item">{{recipe.effect || '调理'}}</view>
+    <view class="item">{{recipe.taboo || '孕妇及特殊人群请遵医嘱'}}</view>
+  </view>
+  <view class="section">
+    <view class="section-title">适合/不适合人群</view>
+    <view class="item">适合：{{recipe.suitable || '按体质选择'}}</view>
+    <view class="item">不适合：{{recipe.unsuitable || '过敏人群慎用'}}</view>
+  </view>
+  <view class="actions">
+    <button bindtap="toggleFav">{{fav ? '已收藏' : '收藏'}}</button>
+    <button open-type="share">分享</button>
+  </view>
+</view>
