@@ -1,3 +1,4 @@
+const { getRecipeImage, defaultCover, normalizeImageUrl } = require('../../utils/image')
 const { request } = require('../../utils/request')
 Page({
   data: {
@@ -9,7 +10,8 @@ Page({
     swiperHeight: 420,
     todayRecommend: [],
     constitutions: ['气虚', '阴虚', '阳虚', '痰湿', '湿热', '血瘀', '气郁', '特禀', '平和'],
-    hotCategories: ['补气', '补血', '祛湿', '清热', '安神', '美容', '养胃']
+    hotCategories: ['补气', '补血', '祛湿', '清热', '安神', '美容', '养胃'],
+    defaultCover
   },
   onLoad() {
     this.loadTodayRecommend()
@@ -37,26 +39,67 @@ Page({
     }
   },
   loadTodayRecommend() {
-    let payload = {}
+    const now = new Date()
+    const y = now.getFullYear()
+    const m = String(now.getMonth() + 1).padStart(2, '0')
+    const d = String(now.getDate()).padStart(2, '0')
+    const key = `${y}-${m}-${d}`
+    const pickOne = (source) => {
+      const list = Array.isArray(source) ? source.filter((it) => it && it.name) : []
+      if (list.length === 0) {
+        this.setData({ todayRecommend: [] })
+        return
+      }
+      const idx = Math.floor(Math.random() * list.length)
+      const item = { ...list[idx] }
+      const url = normalizeImageUrl(item.image_url || '')
+      item.image_url = url && typeof url === 'string' && url.length > 0 ? url : getRecipeImage(item.name || '')
+      this.setData({ todayRecommend: [item] })
+      try { wx.setStorageSync('dailyRecommendRecipe', { date: key, item }) } catch (_) { return }
+    }
     try {
-      const lastAnswers = wx.getStorageSync('lastAnswers') || {}
-      if (lastAnswers && typeof lastAnswers === 'object') payload = { answers: lastAnswers }
-    } catch (_) {}
-    request({ url: '/api/constitution/judge-with-recipes', method: 'POST', data: payload, showLoading: false })
+      const cached = wx.getStorageSync('dailyRecommendRecipe') || {}
+      if (cached && cached.date === key && cached.item) {
+        const item = { ...cached.item }
+        const url = normalizeImageUrl(item.image_url || '')
+        item.image_url = url && typeof url === 'string' && url.length > 0 ? url : getRecipeImage(item.name || '')
+        this.setData({ todayRecommend: [item] })
+        return
+      }
+    } catch (_) { source = [] }
+    let source = []
+    try {
+      source = wx.getStorageSync('allRecipes') || []
+    } catch (_) { source = [] }
+    if (Array.isArray(source) && source.length > 0) {
+      pickOne(source)
+      return
+    }
+    request({ url: '/api/constitution/judge-with-recipes', method: 'POST', data: { listAll: true }, showLoading: false })
       .then((res) => {
-        const merged = Array.isArray(res && res.merged) ? res.merged : []
-        const list = merged.map((x, i) => ({ id: x.id || i, name: x.name || '', constitution: x.constitution || '', effect: x.effect || '', video_url: x.video_url || '' }))
-        const top3 = list.slice(0, 3)
-        this.setData({ todayRecommend: top3 })
+        const arr = Array.isArray(res && res.merged) ? res.merged : Array.isArray(res) ? res : []
+        if (arr.length > 0) {
+          try { wx.setStorageSync('allRecipes', arr) } catch (_) { return }
+        }
+        pickOne(arr)
       })
       .catch(() => {
-        const demo = [
-          { id: 'd1', name: '黄芪党参鸡汤', constitution: '气虚', effect: '益气健脾' },
-          { id: 'd2', name: '薏米赤小豆粥', constitution: '痰湿', effect: '健脾祛湿' },
-          { id: 'd3', name: '百合莲子羹', constitution: '阴虚', effect: '养阴安神' }
-        ]
-        this.setData({ todayRecommend: demo })
+        this.setData({ todayRecommend: [] })
       })
+  },
+  onRecipeImageError(e) {
+    const idx = Number(e.currentTarget.dataset.index || 0)
+    const item = this.data.todayRecommend[idx] || {}
+    const cur = item.image_url || ''
+    const name = item.name || ''
+    if (!cur || cur === this.data.defaultCover) {
+      return
+    }
+    if (cur.endsWith('.png') && !cur.startsWith('http') && !cur.startsWith('cloud://')) {
+      this.setData({ [`todayRecommend[${idx}].image_url`]: `/assets/recipes/${name}.jpg` })
+      return
+    }
+    this.setData({ [`todayRecommend[${idx}].image_url`]: this.data.defaultCover })
   },
   goAssessment() {
     wx.navigateTo({ url: '/pages/assessment/index' })

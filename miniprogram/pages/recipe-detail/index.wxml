@@ -1,6 +1,6 @@
 <view class="page">
   <view class="header">
-    <image class="cover" src="{{recipe.image_url || defaultCover}}" mode="aspectFill" lazy-load="true"></image>
+    <image class="cover" src="{{recipe.image_url || defaultCover}}" mode="widthFix" lazy-load="true" webp="{{true}}" binderror="onDetailImageError"></image>
     <view class="title">{{recipe.name}}</view>
     <view class="meta">{{recipe.effect || '调理'}} · 适合：{{recipe.constitution || '-'}}</view>
   </view>

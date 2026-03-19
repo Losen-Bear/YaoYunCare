@@ -7,7 +7,8 @@
     "start": "node scripts/start.js",
     "dev": "node scripts/start.js",
     "db:init": "node scripts/init-db.js",
-    "db:check": "node scripts/db-check.js"
+    "db:check": "node scripts/db-check.js",
+    "lint": "eslint \"miniprogram/**/*.js\" \"src/**/*.js\""
   },
   "dependencies": {
     "koa": "^2.15.0",
@@ -16,5 +17,8 @@
     "koa2-cors": "^2.0.6",
     "mysql2": "^3.9.7",
     "dotenv": "^16.4.5"
+  },
+  "devDependencies": {
+    "eslint": "^8.57.0"
   }
 }
