@@ -1,5 +1,5 @@
 const { getRecipeImage, defaultCover, normalizeImageUrl } = require('../../utils/image')
-const { request } = require('../../utils/request')
+const { request } = require('../../api/request')
 const REMOVED_RECIPE_NAMES = new Set(['冬瓜排骨海带汤'])
 Page({
   data: {
@@ -97,7 +97,7 @@ Page({
           success: (resp) => {
             const code = resp && resp.code ? resp.code : ''
             if (code) {
-              const { request } = require('../../utils/request')
+              const { request } = require('../../api/request')
               request({ url: '/api/auth/wx-login', method: 'POST', data: { code }, showLoading: false })
                 .then((r) => {
                   const oid = r && r.openid ? r.openid : r && r.data && r.data.openid ? r.data.openid : ''

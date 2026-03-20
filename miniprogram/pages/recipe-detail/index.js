@@ -33,7 +33,7 @@ Page({
   fetchIfNeeded() {
     const recipe = this.data.recipe
     if (!recipe || !Array.isArray(recipe.ingredients) || recipe.ingredients.length === 0) {
-      const { request } = require('../../utils/request')
+      const { request } = require('../../api/request')
       request({ url: '/api/constitution/judge-with-recipes', method: 'POST', data: { listAll: true }, showLoading: false })
         .then((res) => {
           const arr = (Array.isArray(res && res.merged) ? res.merged : Array.isArray(res) ? res : []).map((item) => ({

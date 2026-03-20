@@ -1,4 +1,4 @@
-const envCfg = require('./env')
+const envCfg = require('./config/env')
 App({
   onLaunch() {
     if (wx && wx.cloud) {

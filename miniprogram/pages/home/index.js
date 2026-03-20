@@ -1,5 +1,5 @@
 const { getRecipeImage, defaultCover, normalizeImageUrl } = require('../../utils/image')
-const { request } = require('../../utils/request')
+const { request } = require('../../api/request')
 Page({
   data: {
     banners: [
