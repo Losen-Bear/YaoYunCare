@@ -1,5 +1,5 @@
 const { getRecipeImage, defaultCover, normalizeImageUrl } = require('../../utils/image')
-const { request } = require('../../utils/request')
+const { request } = require('../../api/request')
 Page({
   data: {
     banners: [
@@ -44,6 +44,10 @@ Page({
     const m = String(now.getMonth() + 1).padStart(2, '0')
     const d = String(now.getDate()).padStart(2, '0')
     const key = `${y}-${m}-${d}`
+    const isSignedTempUrl = (url) => {
+      if (!url || typeof url !== 'string') return false
+      return /^https?:\/\//i.test(url) && (url.indexOf('qcloud.la') > -1 || url.indexOf('tcb.qcloud.la') > -1) && /[?&](sign|t)=/i.test(url)
+    }
     const pickOne = (source) => {
       const list = Array.isArray(source) ? source.filter((it) => it && it.name) : []
       if (list.length === 0) {
@@ -62,19 +66,13 @@ Page({
       if (cached && cached.date === key && cached.item) {
         const item = { ...cached.item }
         const url = normalizeImageUrl(item.image_url || '')
-        item.image_url = url && typeof url === 'string' && url.length > 0 ? url : getRecipeImage(item.name || '')
-        this.setData({ todayRecommend: [item] })
-        return
+        if (!isSignedTempUrl(url)) {
+          item.image_url = url && typeof url === 'string' && url.length > 0 ? url : getRecipeImage(item.name || '')
+          this.setData({ todayRecommend: [item] })
+          return
+        }
       }
-    } catch (_) { source = [] }
-    let source = []
-    try {
-      source = wx.getStorageSync('allRecipes') || []
-    } catch (_) { source = [] }
-    if (Array.isArray(source) && source.length > 0) {
-      pickOne(source)
-      return
-    }
+    } catch (_) {}
     request({ url: '/api/constitution/judge-with-recipes', method: 'POST', data: { listAll: true }, showLoading: false })
       .then((res) => {
         const arr = Array.isArray(res && res.merged) ? res.merged : Array.isArray(res) ? res : []
@@ -84,6 +82,12 @@ Page({
         pickOne(arr)
       })
       .catch(() => {
+        let source = []
+        try { source = wx.getStorageSync('allRecipes') || [] } catch (_) { source = [] }
+        if (Array.isArray(source) && source.length > 0) {
+          pickOne(source)
+          return
+        }
         this.setData({ todayRecommend: [] })
       })
   },
