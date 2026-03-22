@@ -74,12 +74,14 @@ Page({
     const map = { ...this.data.answersYN, [qid]: val }
     this.setData({ answersYN: map })
     this.recalc()
+    this.autoNext()
   },
   onSingle(e) {
     const v = e.detail.value || ''
     const p = { ...this.data.profile, exercise: v }
     this.setData({ profile: p })
     this.recalc()
+    this.autoNext()
   },
   onMulti(e) {
     const arr = e.detail.value || []
@@ -87,15 +89,12 @@ Page({
     this.setData({ profile: p })
     this.recalc()
   },
-  toggleDiet(e) {
-    const v = e.currentTarget.dataset.val
-    const cur = Array.isArray(this.data.profile.diet) ? [...this.data.profile.diet] : []
-    const idx = cur.indexOf(v)
-    if (idx >= 0) cur.splice(idx, 1)
-    else cur.push(v)
-    const p = { ...this.data.profile, diet: cur }
-    this.setData({ profile: p })
-    this.recalc()
+  autoNext() {
+    setTimeout(() => {
+      if (this.data.cur < this.data.total - 1) {
+        this.setData({ cur: this.data.cur + 1 })
+      }
+    }, 400)
   },
   recalc() {
     const list = this.data.qList
