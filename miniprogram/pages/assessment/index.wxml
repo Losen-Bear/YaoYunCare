@@ -1,3 +1,11 @@
+<wxs module="utils">
+module.exports = {
+  includes: function(arr, val) {
+    if (!arr) return false;
+    return arr.indexOf(val) !== -1;
+  }
+}
+</wxs>
 <view class="container">
   <view class="top">
     <view class="back" bindtap="goBack">返回</view>
@@ -12,36 +20,51 @@
   <swiper class="swiper" current="{{cur}}" bindchange="onSwiperChange" circular="{{false}}" duration="200">
     <block wx:for="{{qList}}" wx:key="id">
       <swiper-item>
-        <view class="qa">
+        <scroll-view scroll-y class="qa">
           <view class="q">{{item.text}}</view>
           <block wx:if="{{item.type==='yn'}}">
             <radio-group class="opts" data-qid="{{item.id}}" bindchange="onYN">
-              <label class="radio" catchtouchstart="stopSwiper" catchtouchmove="stopSwiper"><radio value="1" checked="{{answersYN[item.id]===true}}" />是</label>
-              <label class="radio" catchtouchstart="stopSwiper" catchtouchmove="stopSwiper"><radio value="0" checked="{{answersYN[item.id]===false}}" />否</label>
+              <label class="radio {{answersYN[item.id]===true ? 'checked' : ''}}">
+                <radio value="1" checked="{{answersYN[item.id]===true}}" color="#2F5E3D" />是
+              </label>
+              <label class="radio {{answersYN[item.id]===false ? 'checked' : ''}}">
+                <radio value="0" checked="{{answersYN[item.id]===false}}" color="#2F5E3D" />否
+              </label>
             </radio-group>
           </block>
           <block wx:elif="{{item.type==='single'}}">
             <radio-group class="opts" bindchange="onSingle">
-              <label class="radio" catchtouchstart="stopSwiper" catchtouchmove="stopSwiper"><radio value="几乎不运动" checked="{{profile.exercise==='几乎不运动'}}" />几乎不运动</label>
-              <label class="radio" catchtouchstart="stopSwiper" catchtouchmove="stopSwiper"><radio value="1-2次" checked="{{profile.exercise==='1-2次'}}" />1-2次</label>
-              <label class="radio" catchtouchstart="stopSwiper" catchtouchmove="stopSwiper"><radio value="3-5次" checked="{{profile.exercise==='3-5次'}}" />3-5次</label>
-              <label class="radio" catchtouchstart="stopSwiper" catchtouchmove="stopSwiper"><radio value="每天运动" checked="{{profile.exercise==='每天运动'}}" />每天运动</label>
+              <label class="radio {{profile.exercise==='几乎不运动' ? 'checked' : ''}}">
+                <radio value="几乎不运动" checked="{{profile.exercise==='几乎不运动'}}" color="#2F5E3D" />几乎不运动
+              </label>
+              <label class="radio {{profile.exercise==='1-2次' ? 'checked' : ''}}">
+                <radio value="1-2次" checked="{{profile.exercise==='1-2次'}}" color="#2F5E3D" />1-2次
+              </label>
+              <label class="radio {{profile.exercise==='3-5次' ? 'checked' : ''}}">
+                <radio value="3-5次" checked="{{profile.exercise==='3-5次'}}" color="#2F5E3D" />3-5次
+              </label>
+              <label class="radio {{profile.exercise==='每天运动' ? 'checked' : ''}}">
+                <radio value="每天运动" checked="{{profile.exercise==='每天运动'}}" color="#2F5E3D" />每天运动
+              </label>
             </radio-group>
           </block>
           <block wx:elif="{{item.type==='multi'}}">
             <checkbox-group class="opts" bindchange="onMulti">
-              <label class="radio" catchtouchstart="stopSwiper" catchtouchmove="stopSwiper"><checkbox value="偏辛辣" checked="{{profile.diet.indexOf('偏辛辣')>=0}}" />偏辛辣</label>
-              <label class="radio" catchtouchstart="stopSwiper" catchtouchmove="stopSwiper"><checkbox value="偏油腻" checked="{{profile.diet.indexOf('偏油腻')>=0}}" />偏油腻</label>
-              <label class="radio" catchtouchstart="stopSwiper" catchtouchmove="stopSwiper"><checkbox value="偏生冷" checked="{{profile.diet.indexOf('偏生冷')>=0}}" />偏生冷</label>
-              <label class="radio" catchtouchstart="stopSwiper" catchtouchmove="stopSwiper"><checkbox value="偏甜腻" checked="{{profile.diet.indexOf('偏甜腻')>=0}}" />偏甜腻</label>
-              <label class="radio" catchtouchstart="stopSwiper" catchtouchmove="stopSwiper"><checkbox value="无明显偏好" checked="{{profile.diet.indexOf('无明显偏好')>=0}}" />无明显偏好</label>
+              <label
+                wx:for="{{item.options}}"
+                wx:for-item="opt"
+                wx:key="*this"
+                class="radio {{utils.includes(profile.diet, opt) ? 'checked' : ''}}"
+              >
+                <checkbox value="{{opt}}" checked="{{utils.includes(profile.diet, opt)}}" color="#2F5E3D" />{{opt}}
+              </label>
             </checkbox-group>
           </block>
-        </view>
+        </scroll-view>
       </swiper-item>
     </block>
   </swiper>
   <view class="actions">
-    <button type="primary" bindtap="onSubmit" disabled="{{!allAnswered}}">提交检测</button>
+    <button class="btn-submit" type="primary" bindtap="onSubmit" disabled="{{!allAnswered}}">提交检测</button>
   </view>
 </view>
