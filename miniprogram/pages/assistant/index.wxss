@@ -1,0 +1,258 @@
+.container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background-color: #F8F5EF;
+  color: #2f2a24;
+  padding: 20rpx 24rpx calc(env(safe-area-inset-bottom) + 20rpx);
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.entry-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 5;
+}
+
+.entry-image {
+  width: 100%;
+  height: 100%;
+  filter: blur(26rpx);
+  transform: scale(1.08);
+  transition: filter 5000ms ease, transform 5000ms ease;
+}
+
+.entry-image-reveal {
+  filter: blur(0rpx);
+  transform: scale(1);
+}
+
+.entry-mask {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(248, 245, 239, 0.2);
+}
+
+.background-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.background-image {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  filter: blur(18rpx);
+  transform: scale(1.06);
+  transition: opacity 2000ms ease, filter 1200ms ease, transform 2000ms ease;
+}
+
+.background-image-show {
+  opacity: 0.5;
+}
+
+.background-image-active {
+  filter: blur(0rpx);
+  transform: scale(1);
+}
+
+.background-mask {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(248, 245, 239, 0.72);
+}
+
+.message-list {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+}
+
+.message-content {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.message-row {
+  width: 100%;
+  display: flex;
+  margin-bottom: 20rpx;
+  align-items: flex-start;
+}
+
+.message-row-assistant {
+  justify-content: flex-start;
+}
+
+.message-row-user {
+  justify-content: flex-end;
+}
+
+.avatar {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 50%;
+  overflow: hidden;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 30rpx;
+  font-weight: 600;
+}
+
+.avatar.songnian {
+  background: linear-gradient(135deg, #8f7048, #c8ad66);
+}
+
+.avatar.qinghe {
+  background: linear-gradient(135deg, #4e8d68, #75b592);
+}
+
+.avatar-user {
+  margin-left: 14rpx;
+  background: #e7dfcf;
+  color: #6b5e4c;
+  overflow: hidden;
+}
+
+.avatar-image {
+  width: 100%;
+  height: 100%;
+}
+
+.bubble-wrap {
+  max-width: 76%;
+  margin-left: 14rpx;
+  display: flex;
+  flex-direction: column;
+}
+
+.bubble-wrap-user {
+  align-items: flex-end;
+  margin-left: 0;
+  margin-right: 14rpx;
+}
+
+.speaker-name {
+  font-size: 26rpx;
+  color: #8b7a61;
+  margin-bottom: 8rpx;
+}
+
+.bubble {
+  padding: 18rpx 22rpx;
+  border-radius: 18rpx;
+  line-height: 1.6;
+}
+
+.bubble-assistant {
+  background: #fcf7ef;
+  color: #3d352c;
+  border: 1rpx solid #e4d6bf;
+  border-top-left-radius: 6rpx;
+}
+
+.bubble-user {
+  background: #2F5E3D;
+  color: #fff;
+  border-top-right-radius: 6rpx;
+}
+
+.bubble-text {
+  font-size: 34rpx;
+  word-break: break-all;
+  color: inherit;
+}
+
+.bubble-assistant .bubble-text {
+  color: #3d352c;
+}
+
+.bubble-user .bubble-text {
+  color: #fff;
+}
+
+.quick-question-list {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  white-space: nowrap;
+  margin-top: 10rpx;
+  margin-bottom: 14rpx;
+}
+
+.quick-question-content {
+  display: inline-flex;
+  align-items: center;
+}
+
+.quick-question {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10rpx 24rpx;
+  margin-right: 14rpx;
+  background-color: #fff;
+  border-radius: 999rpx;
+  font-size: 28rpx;
+  color: #5a4a3c;
+  border: 1rpx solid #d8c8ad;
+}
+
+.input-bar {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  padding: 12rpx;
+  background: #fff;
+  border-radius: 16rpx;
+  box-sizing: border-box;
+}
+
+.chat-input {
+  flex: 1;
+  height: 68rpx;
+  background: #f7f4ee;
+  border-radius: 12rpx;
+  padding: 0 20rpx;
+  font-size: 32rpx;
+  color: #3d352c;
+}
+
+.send-btn {
+  margin-left: 12rpx;
+  height: 68rpx;
+  padding: 0 26rpx;
+  background: #2F5E3D;
+  color: #fff;
+  border-radius: 12rpx;
+  font-size: 32rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}

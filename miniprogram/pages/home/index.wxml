@@ -13,7 +13,7 @@
     <swiper indicator-dots autoplay interval="5000" circular style="height: {{swiperHeight}}rpx;">
       <swiper-item wx:for="{{banners}}" wx:key="*this">
         <block wx:if="{{!item.error}}">
-          <image class="banner-image" src="{{item.src}}" mode="widthFix" lazy-load="true" bindtap="onBannerTap" binderror="onBannerError" bindload="onBannerLoad" data-index="{{index}}"></image>
+          <image class="banner-image" src="{{item.src}}" mode="widthFix" lazy-load="true" webp="{{true}}" bindtap="onBannerTap" binderror="onBannerError" bindload="onBannerLoad" data-index="{{index}}"></image>
         </block>
         <block wx:else>
           <view class="banner-item" style="height: {{swiperHeight}}rpx;" bindtap="onBannerTap" data-index="{{index}}">{{item.text}}</view>
@@ -33,7 +33,7 @@
     <block wx:if="{{todayRecommend.length}}">
       <block wx:for="{{todayRecommend}}" wx:key="id">
         <view class="recipe-card" bindtap="goRecipeDetail" data-id="{{item.id}}">
-          <view class="cover"></view>
+            <image class="cover" src="{{item.image_url || defaultCover}}" mode="aspectFill" lazy-load="true" webp="{{true}}" binderror="onRecipeImageError" data-index="{{index}}"></image>
           <view class="info">
             <view class="name">{{item.name}}</view>
             <view class="desc">{{item.effect || '滋补调理'}}</view>

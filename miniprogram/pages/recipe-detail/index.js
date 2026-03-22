@@ -1,4 +1,4 @@
-const { getRecipeImage, defaultCover } = require('../../utils/image')
+const { getRecipeImage, defaultCover, normalizeImageUrl } = require('../../utils/image')
 Page({
   data: {
     id: '',
@@ -9,18 +9,44 @@ Page({
   onLoad(options) {
     const id = options && options.id ? String(options.id) : ''
     this.setData({ id })
+    this.loadFromCache()
+    this.fetchIfNeeded()
+  },
+  loadFromCache() {
     let source = []
     try {
       source = wx.getStorageSync('allRecipes') || []
       if (!Array.isArray(source) || source.length === 0) source = wx.getStorageSync('lastJudgeResult')?.recipes || []
     } catch (_) {}
-    let recipe = source.find((x) => String(x.id) === id)
+    let recipe = source.find((x) => String(x.id) === this.data.id)
     if (!recipe) {
-      recipe = { id, name: '药膳', constitution: '', ingredients: [], steps: [], effect: '', difficulty: '中', time: '30min' }
+      recipe = { id: this.data.id, name: '药膳', constitution: '', ingredients: [], steps: [], effect: '', difficulty: '中', time: '30min' }
     }
-    recipe.image_url = getRecipeImage(recipe.name)
+    if (!recipe.image_url || String(recipe.image_url).length === 0) {
+      recipe.image_url = getRecipeImage(recipe.name)
+    } else {
+      recipe.image_url = normalizeImageUrl(recipe.image_url)
+    }
     this.setData({ recipe })
     this.syncFav()
+  },
+  fetchIfNeeded() {
+    const recipe = this.data.recipe
+    if (!recipe || !Array.isArray(recipe.ingredients) || recipe.ingredients.length === 0) {
+      const { request } = require('../../api/request')
+      request({ url: '/api/constitution/judge-with-recipes', method: 'POST', data: { listAll: true }, showLoading: false })
+        .then((res) => {
+          const arr = (Array.isArray(res && res.merged) ? res.merged : Array.isArray(res) ? res : []).map((item) => ({
+            ...item,
+            image_url: normalizeImageUrl(item && item.image_url ? item.image_url : '')
+          }))
+          if (arr.length > 0) {
+            try { wx.setStorageSync('allRecipes', arr) } catch (_) {}
+            this.loadFromCache()
+          }
+        })
+        .catch(() => {})
+    }
   },
   syncFav() {
     try {
@@ -49,5 +75,17 @@ Page({
   onShareAppMessage() {
     const title = this.data.recipe.name || '药膳详情'
     return { title }
+  },
+  onDetailImageError() {
+    const cur = this.data.recipe.image_url || ''
+    const name = this.data.recipe.name || ''
+    if (!cur || cur === this.data.defaultCover) {
+      return
+    }
+    if (cur.endsWith('.png') && !cur.startsWith('http') && !cur.startsWith('cloud://')) {
+      this.setData({ 'recipe.image_url': `/assets/recipes/${name}.jpg` })
+      return
+    }
+    this.setData({ 'recipe.image_url': this.data.defaultCover })
   }
 })

@@ -1,0 +1,101 @@
+<view class="container">
+  <view wx:if="{{entryVisible}}" class="entry-layer">
+    <image
+      class="entry-image {{entryReveal ? 'entry-image-reveal' : ''}}"
+      src="{{entryImage}}"
+      mode="aspectFill"
+      binderror="onEntryImageError"
+    ></image>
+    <view class="entry-mask"></view>
+  </view>
+  <view class="background-layer">
+    <image
+      wx:if="{{messages.length === 0}}"
+      class="background-image background-image-show background-image-active"
+      src="{{idleBackgroundImage}}"
+      mode="aspectFill"
+    ></image>
+    <image
+      class="background-image {{roleBackgroundVisible.songnian ? 'background-image-show' : ''}} {{activeSpeakerRole === 'songnian' ? 'background-image-active' : ''}}"
+      src="{{backgroundImages.songnian}}"
+      mode="aspectFill"
+    ></image>
+    <image
+      class="background-image {{roleBackgroundVisible.qinghe ? 'background-image-show' : ''}} {{activeSpeakerRole === 'qinghe' ? 'background-image-active' : ''}}"
+      src="{{backgroundImages.qinghe}}"
+      mode="aspectFill"
+    ></image>
+    <view class="background-mask"></view>
+  </view>
+  <scroll-view
+    class="message-list"
+    scroll-y
+    enhanced
+    show-scrollbar="{{false}}"
+    scroll-into-view="{{scrollIntoView}}"
+  >
+    <view class="message-content">
+      <view
+        wx:for="{{messages}}"
+        wx:key="id"
+        id="msg-{{item.id}}"
+        class="message-row {{item.type === 'user' ? 'message-row-user' : 'message-row-assistant'}}"
+      >
+        <block wx:if="{{item.type === 'assistant'}}">
+          <view class="avatar {{item.role}}">
+            <image
+              wx:if="{{item.avatarUrl}}"
+              class="avatar-image"
+              src="{{item.avatarUrl}}"
+              mode="aspectFill"
+            ></image>
+            <text wx:else>{{item.role === 'songnian' ? '松' : '青'}}</text>
+          </view>
+        </block>
+        <view class="bubble-wrap {{item.type === 'user' ? 'bubble-wrap-user' : ''}}">
+          <text wx:if="{{item.type === 'assistant'}}" class="speaker-name">{{item.name}}</text>
+          <view class="bubble {{item.type === 'user' ? 'bubble-user' : 'bubble-assistant'}}">
+            <text class="bubble-text">{{item.text}}</text>
+          </view>
+        </view>
+        <block wx:if="{{item.type === 'user'}}">
+          <view class="avatar avatar-user">
+            <image
+              wx:if="{{item.avatarUrl || userProfile.avatarUrl}}"
+              class="avatar-image"
+              src="{{item.avatarUrl || userProfile.avatarUrl || defaultAvatar}}"
+              mode="aspectFill"
+            ></image>
+            <text wx:else>我</text>
+          </view>
+        </block>
+      </view>
+    </view>
+  </scroll-view>
+
+  <scroll-view class="quick-question-list" scroll-x show-scrollbar="{{false}}">
+    <view class="quick-question-content">
+      <view
+        wx:for="{{quickQuestions}}"
+        wx:key="*this"
+        class="quick-question"
+        data-question="{{item}}"
+        bindtap="onQuickQuestionTap"
+      >
+        {{item}}
+      </view>
+    </view>
+  </scroll-view>
+
+  <view class="input-bar">
+    <input
+      class="chat-input"
+      placeholder="输入你的体质或需求"
+      value="{{inputText}}"
+      bindinput="onInputChange"
+      confirm-type="send"
+      bindconfirm="onSendTap"
+    />
+    <view class="send-btn" bindtap="onSendTap">发送</view>
+  </view>
+</view>

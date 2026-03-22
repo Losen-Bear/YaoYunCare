@@ -1,4 +1,4 @@
-const { request } = require('../../utils/request')
+const { request } = require('../../api/request')
 const BANK = [
   { id: 3, type: 'multi', text: '请问您的日常饮食习惯（可多选）？', options: ['偏辛辣', '偏油腻', '偏生冷', '偏甜腻', '无明显偏好'] },
   { id: 4, type: 'single', text: '请问您的每周运动频率？', options: ['几乎不运动', '1-2次', '3-5次', '每天运动'] },
@@ -51,7 +51,7 @@ Page({
         success: (resp) => {
           const code = resp && resp.code ? resp.code : ''
           if (code) {
-            const { request } = require('../../utils/request')
+            const { request } = require('../../api/request')
             request({ url: '/api/auth/wx-login', method: 'POST', data: { code }, showLoading: false })
               .then((res) => {
                 const openid = res && res.openid ? res.openid : res && res.data && res.data.openid ? res.data.openid : ''
@@ -74,12 +74,14 @@ Page({
     const map = { ...this.data.answersYN, [qid]: val }
     this.setData({ answersYN: map })
     this.recalc()
+    this.autoNext()
   },
   onSingle(e) {
     const v = e.detail.value || ''
     const p = { ...this.data.profile, exercise: v }
     this.setData({ profile: p })
     this.recalc()
+    this.autoNext()
   },
   onMulti(e) {
     const arr = e.detail.value || []
@@ -87,15 +89,12 @@ Page({
     this.setData({ profile: p })
     this.recalc()
   },
-  toggleDiet(e) {
-    const v = e.currentTarget.dataset.val
-    const cur = Array.isArray(this.data.profile.diet) ? [...this.data.profile.diet] : []
-    const idx = cur.indexOf(v)
-    if (idx >= 0) cur.splice(idx, 1)
-    else cur.push(v)
-    const p = { ...this.data.profile, diet: cur }
-    this.setData({ profile: p })
-    this.recalc()
+  autoNext() {
+    setTimeout(() => {
+      if (this.data.cur < this.data.total - 1) {
+        this.setData({ cur: this.data.cur + 1 })
+      }
+    }, 400)
   },
   recalc() {
     const list = this.data.qList

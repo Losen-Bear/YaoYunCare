@@ -5,19 +5,19 @@
     <view class="section-title">基础信息</view>
     <view class="form-item">
       <view class="label">性别</view>
-      <radio-group data-field="gender" bindchange="onProfileRadio">
-        <label class="radio"><radio value="男" checked="{{gender==='男'}}" />男</label>
-        <label class="radio"><radio value="女" checked="{{gender==='女'}}" />女</label>
+      <radio-group class="radio-group" data-field="gender" bindchange="onProfileRadio">
+        <label class="radio {{gender==='男' ? 'checked' : ''}}"><radio value="男" checked="{{gender==='男'}}" color="#2F5E3D" />男</label>
+        <label class="radio {{gender==='女' ? 'checked' : ''}}"><radio value="女" checked="{{gender==='女'}}" color="#2F5E3D" />女</label>
       </radio-group>
     </view>
     <view class="form-item">
       <view class="label">年龄</view>
-      <radio-group data-field="age" bindchange="onProfileRadio">
-        <label class="radio"><radio value="12-18岁" checked="{{age==='12-18岁'}}" />12-18岁</label>
-        <label class="radio"><radio value="18-30岁" checked="{{age==='18-30岁'}}" />18-30岁</label>
-        <label class="radio"><radio value="31-45岁" checked="{{age==='31-45岁'}}" />31-45岁</label>
-        <label class="radio"><radio value="46-60岁" checked="{{age==='46-60岁'}}" />46-60岁</label>
-        <label class="radio"><radio value="60岁以上" checked="{{age==='60岁以上'}}" />60岁以上</label>
+      <radio-group class="radio-group age-group" data-field="age" bindchange="onProfileRadio">
+        <label class="radio {{age==='12-18岁' ? 'checked' : ''}}"><radio value="12-18岁" checked="{{age==='12-18岁'}}" color="#2F5E3D" />12-18岁</label>
+        <label class="radio {{age==='18-30岁' ? 'checked' : ''}}"><radio value="18-30岁" checked="{{age==='18-30岁'}}" color="#2F5E3D" />18-30岁</label>
+        <label class="radio {{age==='31-45岁' ? 'checked' : ''}}"><radio value="31-45岁" checked="{{age==='31-45岁'}}" color="#2F5E3D" />31-45岁</label>
+        <label class="radio {{age==='46-60岁' ? 'checked' : ''}}"><radio value="46-60岁" checked="{{age==='46-60岁'}}" color="#2F5E3D" />46-60岁</label>
+        <label class="radio {{age==='60岁以上' ? 'checked' : ''}}"><radio value="60岁以上" checked="{{age==='60岁以上'}}" color="#2F5E3D" />60岁以上</label>
       </radio-group>
     </view>
   </view>

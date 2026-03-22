@@ -1,5 +1,5 @@
 .header{padding:16rpx;text-align:center}
-.cover{width:100%;height:220rpx;background:#EDE4D5;border-radius:12rpx;margin-bottom:12rpx}
+.cover{width:100%;height:auto;background:#EDE4D5;border-radius:12rpx;margin-bottom:12rpx}
 .title{font-size:34rpx;font-weight:600;margin-bottom:6rpx}
 .meta{color:#666}
 .section{background:#FCFAF3;margin:12rpx 16rpx;padding:16rpx;border-radius:12rpx;border:1px solid #E0D6C2}

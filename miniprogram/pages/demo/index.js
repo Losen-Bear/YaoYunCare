@@ -1,4 +1,4 @@
-const { request } = require('../../utils/request')
+const { request } = require('../../api/request')
 Page({
   data: { result: {}, recipesList: [] },
   onLoad() {
