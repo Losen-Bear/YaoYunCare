@@ -7,6 +7,13 @@ Page({
     history: []
   },
   onShow() {
+    try {
+      const logged = !!wx.getStorageSync('isLoggedIn')
+      if (!logged) {
+        wx.navigateTo({ url: '/pkg-user/pages/login/index?redirect=%2Fpages%2Fprofile%2Findex&tab=1' })
+        return
+      }
+    } catch (_) { return }
     let p = {}
     try { p = wx.getStorageSync('userProfile') || {} } catch (_) {}
     const profile = { nickName: p.nickName || '', avatarUrl: p.avatarUrl || '' }
@@ -43,17 +50,17 @@ Page({
       const main = result.mainConstitution || ''
       const types = Array.isArray(result.primary) && result.primary.length ? result.primary : (main ? main.split('+') : [])
       wx.navigateTo({
-        url: `/pages/constitution/index?main=${encodeURIComponent(main)}&types=${encodeURIComponent(types.join(','))}`,
+        url: `/pkg-user/pages/constitution/index?main=${encodeURIComponent(main)}&types=${encodeURIComponent(types.join(','))}`,
         success: (nav) => { if (nav && nav.eventChannel && nav.eventChannel.emit) nav.eventChannel.emit('judge', { result, recipes }) }
       })
     } catch (_) { wx.showToast({ title: '无报告', icon: 'none' }) }
   },
   retest() {
-    wx.navigateTo({ url: '/pages/assessment/index' })
+    wx.navigateTo({ url: '/pkg-assessment/pages/notice/index' })
   },
   goDetail(e) {
     const id = e.currentTarget.dataset.id
-    wx.navigateTo({ url: `/pages/recipe-detail/index?id=${id}` })
+    wx.navigateTo({ url: `/pkg-detail/pages/recipe-detail/index?id=${id}` })
   },
   menu(e) {
     const key = e.currentTarget.dataset.key

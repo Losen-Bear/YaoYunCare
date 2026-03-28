@@ -26,4 +26,4 @@
     <button bindtap="toggleFav">{{fav ? '已收藏' : '收藏'}}</button>
     <button open-type="share">分享</button>
   </view>
-</view>
+  </view>

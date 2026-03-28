@@ -22,7 +22,7 @@ Page({
           wx.setStorageSync('openid', openid)
           const navToAssess = () => {
             wx.navigateTo({
-              url: '/pages/assessment/index',
+              url: '/pkg-assessment/pages/notice/index',
               success: (nav) => { nav.eventChannel.emit('profile', { gender, age, openid }) }
             })
           }
