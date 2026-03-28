@@ -1,4 +1,4 @@
-const { getRecipeImage, defaultCover, normalizeImageUrl } = require('../../utils/image')
+const { getRecipeImage, getRecipeCloudWebpByName, defaultCover, isSignedCloudTempUrl, normalizeImageUrl, resolveImageUrl, resolveImageUrls, toCloudFileID } = require('../../utils/image')
 const { request } = require('../../api/request')
 const REMOVED_RECIPE_NAMES = new Set(['冬瓜排骨海带汤'])
 Page({
@@ -10,6 +10,43 @@ Page({
     allRecipes: [],
     list: [],
     defaultCover
+  },
+  normalizeCardImage(url, name) {
+    const u = normalizeImageUrl(url || '')
+    if (isSignedCloudTempUrl(u)) {
+      const cloudID = toCloudFileID(u)
+      if (cloudID && cloudID.startsWith('cloud://')) return cloudID
+      return getRecipeImage(name || '')
+    }
+    if (u && typeof u === 'string' && u.length > 0) return u
+    return getRecipeImage(name || '')
+  },
+  ensureDisplayableImage(url) {
+    const u = normalizeImageUrl(url || '')
+    if (!u || typeof u !== 'string') return ''
+    if (u.startsWith('cloud://')) return ''
+    return u
+  },
+  async refreshAllRecipeImages() {
+    const all = Array.isArray(this.data.allRecipes) ? this.data.allRecipes : []
+    if (all.length === 0) return
+    const normalized = all.map((it) => this.normalizeCardImage(it && it.image_url ? it.image_url : '', it && it.name ? it.name : ''))
+    const resolved = await resolveImageUrls(normalized)
+    const next = all.map((it, index) => {
+      const preferred = this.ensureDisplayableImage(resolved[index] || '')
+      const fallback = this.ensureDisplayableImage(normalized[index] || '')
+      return { ...it, image_url: preferred || fallback || this.data.defaultCover }
+    })
+    this.setData({ allRecipes: next })
+    try { wx.setStorageSync('allRecipes', next) } catch (_) { void 0 }
+    this.applyFilter()
+  },
+  onShow() {
+    if (typeof this.getTabBar === 'function' && this.getTabBar()) {
+      this.getTabBar().setData({
+        selected: 1
+      })
+    }
   },
   onLoad() {
     const base = [
@@ -39,15 +76,16 @@ Page({
         effect: x.effect || '',
         difficulty: x.difficulty || '中',
         time: x.time || '30min',
-        image_url: (x.image_url && String(x.image_url).length > 0) ? normalizeImageUrl(x.image_url) : getRecipeImage(x.name || '')
+        image_url: this.normalizeCardImage(x.image_url, x.name || '')
       }))
       const all = [...merged, ...base].filter((item) => !REMOVED_RECIPE_NAMES.has(item && item.name ? item.name : ''))
       this.setData({ allRecipes: all })
-      try { wx.setStorageSync('allRecipes', all) } catch (_) {}
+      try { wx.setStorageSync('allRecipes', all) } catch (_) { void 0 }
     } catch (_) {
       this.setData({ allRecipes: base })
-      try { wx.setStorageSync('allRecipes', base) } catch (_) {}
+      try { wx.setStorageSync('allRecipes', base) } catch (_) { void 0 }
     }
+    this.refreshAllRecipeImages()
     const loadCloud = () => {
       request({ url: '/api/constitution/judge-with-recipes', method: 'POST', data: { listAll: true }, showLoading: false })
         .then((res) => {
@@ -55,37 +93,35 @@ Page({
           const map = {}
           arr.forEach((it) => { if (it && it.name) map[it.name] = it })
           
-          // First, update existing items with cloud data
           const updated = (this.data.allRecipes || []).map((it) => {
             const cloudItem = map[it.name]
             if (cloudItem) {
-              const url = normalizeImageUrl(cloudItem.image_url || '')
-              map[it.name] = null // Mark as processed
+              const url = this.normalizeCardImage(cloudItem.image_url, cloudItem.name || '')
+              map[it.name] = null
               return { 
                 ...it, 
                 ...cloudItem,
-                image_url: (url && typeof url === 'string' && url.length > 0) ? url : it.image_url 
+                image_url: (url && typeof url === 'string' && url.length > 0) ? url : this.normalizeCardImage(it.image_url, it.name || '')
               }
             }
             return it
           })
 
-          // Then, append any new items from the cloud that weren't in the local list
           const newItems = []
           Object.values(map).forEach(cloudItem => {
             if (cloudItem) {
-              const url = normalizeImageUrl(cloudItem.image_url || '')
+              const url = this.normalizeCardImage(cloudItem.image_url, cloudItem.name || '')
               newItems.push({
                 ...cloudItem,
-                image_url: (url && typeof url === 'string' && url.length > 0) ? url : getRecipeImage(cloudItem.name || '')
+                image_url: (url && typeof url === 'string' && url.length > 0) ? url : this.normalizeCardImage('', cloudItem.name || '')
               })
             }
           })
 
           const finalRecipes = [...updated, ...newItems].filter((item) => !REMOVED_RECIPE_NAMES.has(item && item.name ? item.name : ''))
           this.setData({ allRecipes: finalRecipes })
-          try { wx.setStorageSync('allRecipes', finalRecipes) } catch (_) {}
-          this.applyFilter()
+          try { wx.setStorageSync('allRecipes', finalRecipes) } catch (_) { void 0 }
+          this.refreshAllRecipeImages()
         })
         .catch(() => {})
     }
@@ -101,7 +137,7 @@ Page({
               request({ url: '/api/auth/wx-login', method: 'POST', data: { code }, showLoading: false })
                 .then((r) => {
                   const oid = r && r.openid ? r.openid : r && r.data && r.data.openid ? r.data.openid : ''
-                  if (oid) { try { wx.setStorageSync('openid', oid) } catch (_) {} }
+                  if (oid) { try { wx.setStorageSync('openid', oid) } catch (_) { void 0 } }
                   loadCloud()
                 })
                 .catch(() => { loadCloud() })
@@ -154,9 +190,14 @@ Page({
       return true
     })
     if (c) list = list.filter((x) => (x.constitution || '').indexOf(c) > -1)
-    this.setData({ list })
+    this.setData({
+      list: list.map((x) => ({
+        ...x,
+        image_url: this.ensureDisplayableImage(x && x.image_url ? x.image_url : '') || this.data.defaultCover
+      }))
+    })
   },
-  onImageError(e) {
+  async onImageError(e) {
     const idx = Number(e.currentTarget.dataset.index || 0)
     const item = this.data.list[idx] || {}
     const cur = item.image_url || ''
@@ -165,10 +206,13 @@ Page({
       return
     }
     if (cur.endsWith('.png') && !cur.startsWith('http') && !cur.startsWith('cloud://')) {
-      this.setData({ [`list[${idx}].image_url`]: `/assets/recipes/${name}.jpg` })
+      const fallback = getRecipeCloudWebpByName(name)
+      const resolved = await resolveImageUrl(fallback || this.data.defaultCover)
+      this.setData({ [`list[${idx}].image_url`]: resolved || this.data.defaultCover })
       return
     }
-    this.setData({ [`list[${idx}].image_url`]: this.data.defaultCover })
+    const resolved = await resolveImageUrl(this.data.defaultCover)
+    this.setData({ [`list[${idx}].image_url`]: resolved || this.data.defaultCover })
   },
   goDetail(e) {
     const id = e.currentTarget.dataset.id

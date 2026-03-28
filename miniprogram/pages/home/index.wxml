@@ -1,7 +1,7 @@
 <view class="page">
   <view class="topbar">
     <view class="left">
-      <image class="left-logo" src="/assets/icons/logo-yy.png" mode="aspectFit" lazy-load="true" binderror="onLogoError"></image>
+      <image class="left-logo" src="{{logoSrc}}" mode="aspectFit" lazy-load="true" binderror="onLogoError"></image>
       <block wx:if="{{logoError}}">YY</block>
     </view>
     <view class="title">养生药膳</view>
@@ -12,7 +12,7 @@
   <view class="banner">
     <swiper indicator-dots autoplay interval="5000" circular style="height: {{swiperHeight}}rpx;">
       <swiper-item wx:for="{{banners}}" wx:key="*this">
-        <block wx:if="{{!item.error}}">
+        <block wx:if="{{item.src && !item.error}}">
           <image class="banner-image" src="{{item.src}}" mode="widthFix" lazy-load="true" webp="{{true}}" bindtap="onBannerTap" binderror="onBannerError" bindload="onBannerLoad" data-index="{{index}}"></image>
         </block>
         <block wx:else>

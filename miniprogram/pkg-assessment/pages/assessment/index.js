@@ -1,4 +1,4 @@
-const { request } = require('../../api/request')
+const { request } = require('../../../api/request')
 const BANK = [
   { id: 3, type: 'multi', text: '请问您的日常饮食习惯（可多选）？', options: ['偏辛辣', '偏油腻', '偏生冷', '偏甜腻', '无明显偏好'] },
   { id: 4, type: 'single', text: '请问您的每周运动频率？', options: ['几乎不运动', '1-2次', '3-5次', '每天运动'] },
@@ -51,7 +51,7 @@ Page({
         success: (resp) => {
           const code = resp && resp.code ? resp.code : ''
           if (code) {
-            const { request } = require('../../api/request')
+            const { request } = require('../../../api/request')
             request({ url: '/api/auth/wx-login', method: 'POST', data: { code }, showLoading: false })
               .then((res) => {
                 const openid = res && res.openid ? res.openid : res && res.data && res.data.openid ? res.data.openid : ''

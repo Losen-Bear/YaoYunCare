@@ -1,14 +1,19 @@
-const { request } = require('../../api/request')
+const { request } = require('../../../api/request')
+const { resolveImageUrl } = require('../../../utils/image')
+const LOGIN_LOGO_FILE_ID = 'cloud://cloud1-8g4fsimf73eedcfd.636c-cloud1-8g4fsimf73eedcfd-1410266719/icons/logo-yy.webp'
 Page({
   data: {
     defaultAvatar: 'https://res.wx.qq.com/op_res/Y3uW5mC3E-placeholder-avatar.png',
-    logoError: false
+    logoError: false,
+    logoSrc: ''
   },
-  onLoad(options) {
+  async onLoad(options) {
     const redirect = decodeURIComponent(options && options.redirect ? options.redirect : '')
     const isTab = options && options.tab === '1'
     this._redirect = redirect
     this._isTab = isTab
+    const logoSrc = await resolveImageUrl(LOGIN_LOGO_FILE_ID)
+    this.setData({ logoSrc: logoSrc || '' })
   },
   onLogoError() {
     this.setData({ logoError: true })
