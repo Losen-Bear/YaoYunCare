@@ -1,6 +1,6 @@
 <view class="container">
   <view class="card">
-    <image class="logo" src="/assets/icons/logo-yy.png" mode="aspectFit" binderror="onLogoError"></image>
+    <image class="logo" src="{{logoSrc}}" mode="aspectFit" binderror="onLogoError"></image>
     <view class="title">微信授权登录</view>
     <view class="desc">登录后可使用“我的药膳方”和“我的”等个性化功能</view>
     <button class="login-btn" bindtap="doLogin">授权并登录</button>

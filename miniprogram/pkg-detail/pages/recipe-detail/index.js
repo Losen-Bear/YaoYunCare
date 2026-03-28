@@ -1,4 +1,4 @@
-const { getRecipeImage, defaultCover, normalizeImageUrl } = require('../../utils/image')
+const { getRecipeImage, getRecipeCloudWebpByName, defaultCover, isSignedCloudTempUrl, normalizeImageUrl, resolveImageUrl, toCloudFileID } = require('../../../utils/image')
 Page({
   data: {
     id: '',
@@ -6,42 +6,48 @@ Page({
     fav: false,
     defaultCover
   },
+  normalizeDetailImage(url, name) {
+    const u = normalizeImageUrl(url || '')
+    if (isSignedCloudTempUrl(u)) {
+      const cloudID = toCloudFileID(u)
+      if (cloudID && cloudID.startsWith('cloud://')) return cloudID
+      return getRecipeImage(name || '')
+    }
+    if (u && typeof u === 'string' && u.length > 0) return u
+    return getRecipeImage(name || '')
+  },
   onLoad(options) {
     const id = options && options.id ? String(options.id) : ''
     this.setData({ id })
     this.loadFromCache()
     this.fetchIfNeeded()
   },
-  loadFromCache() {
+  async loadFromCache() {
     let source = []
     try {
       source = wx.getStorageSync('allRecipes') || []
       if (!Array.isArray(source) || source.length === 0) source = wx.getStorageSync('lastJudgeResult')?.recipes || []
-    } catch (_) {}
+    } catch (_) { void 0 }
     let recipe = source.find((x) => String(x.id) === this.data.id)
     if (!recipe) {
       recipe = { id: this.data.id, name: '药膳', constitution: '', ingredients: [], steps: [], effect: '', difficulty: '中', time: '30min' }
     }
-    if (!recipe.image_url || String(recipe.image_url).length === 0) {
-      recipe.image_url = getRecipeImage(recipe.name)
-    } else {
-      recipe.image_url = normalizeImageUrl(recipe.image_url)
-    }
+    recipe.image_url = await resolveImageUrl(this.normalizeDetailImage(recipe.image_url, recipe.name))
     this.setData({ recipe })
     this.syncFav()
   },
   fetchIfNeeded() {
     const recipe = this.data.recipe
     if (!recipe || !Array.isArray(recipe.ingredients) || recipe.ingredients.length === 0) {
-      const { request } = require('../../api/request')
+      const { request } = require('../../../api/request')
       request({ url: '/api/constitution/judge-with-recipes', method: 'POST', data: { listAll: true }, showLoading: false })
         .then((res) => {
           const arr = (Array.isArray(res && res.merged) ? res.merged : Array.isArray(res) ? res : []).map((item) => ({
             ...item,
-            image_url: normalizeImageUrl(item && item.image_url ? item.image_url : '')
+            image_url: this.normalizeDetailImage(item && item.image_url ? item.image_url : '', item && item.name ? item.name : '')
           }))
           if (arr.length > 0) {
-            try { wx.setStorageSync('allRecipes', arr) } catch (_) {}
+            try { wx.setStorageSync('allRecipes', arr) } catch (_) { void 0 }
             this.loadFromCache()
           }
         })
@@ -53,7 +59,7 @@ Page({
       const favs = wx.getStorageSync('favorites') || []
       const exists = favs.some((x) => String(x.id) === String(this.data.id))
       this.setData({ fav: !!exists })
-    } catch (_) {}
+    } catch (_) { void 0 }
   },
   toggleFav() {
     try {
@@ -70,22 +76,25 @@ Page({
         this.setData({ fav: true })
         wx.showToast({ title: '已收藏', icon: 'success' })
       }
-    } catch (_) {}
+    } catch (_) { void 0 }
   },
   onShareAppMessage() {
     const title = this.data.recipe.name || '药膳详情'
     return { title }
   },
-  onDetailImageError() {
+  async onDetailImageError() {
     const cur = this.data.recipe.image_url || ''
     const name = this.data.recipe.name || ''
     if (!cur || cur === this.data.defaultCover) {
       return
     }
     if (cur.endsWith('.png') && !cur.startsWith('http') && !cur.startsWith('cloud://')) {
-      this.setData({ 'recipe.image_url': `/assets/recipes/${name}.jpg` })
+      const fallback = getRecipeCloudWebpByName(name)
+      const resolved = await resolveImageUrl(fallback || this.data.defaultCover)
+      this.setData({ 'recipe.image_url': resolved || this.data.defaultCover })
       return
     }
-    this.setData({ 'recipe.image_url': this.data.defaultCover })
+    const resolved = await resolveImageUrl(this.data.defaultCover)
+    this.setData({ 'recipe.image_url': resolved || this.data.defaultCover })
   }
 })
