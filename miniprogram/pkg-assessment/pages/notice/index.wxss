@@ -1,0 +1,30 @@
+.container {
+  padding: 40rpx;
+  background-color: #F8F5EF;
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+.card {
+  background-color: #fff;
+  border-radius: 16rpx;
+  box-shadow: 0 6rpx 24rpx rgba(0,0,0,0.06);
+  padding: 32rpx;
+  color: #333;
+}
+.title {
+  font-size: 36rpx;
+  color: #2F5E3D;
+  margin-bottom: 16rpx;
+  font-weight: 600;
+}
+.content {
+  font-size: 28rpx;
+  line-height: 1.8;
+}
+.actions {
+  margin-top: 40rpx;
+}
+button {
+  background-color: #2F5E3D;
+  color: #fff;
+}

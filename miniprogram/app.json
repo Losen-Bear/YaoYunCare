@@ -1,14 +1,9 @@
 {
   "pages": [
     "pages/home/index",
-    "pages/assessment/index",
-    "pages/constitution/index",
     "pages/recipes/index",
     "pages/assistant/index",
-    "pages/recipe-detail/index",
-    "pages/profile/index",
-    "pages/welcome/index",
-    "pages/demo/index"
+    "pages/profile/index"
   ],
   "window": {
     "navigationBarTitleText": "养生药膳",
@@ -48,5 +43,33 @@
         "selectedIconPath": "assets/home/top-4.jpg"
       }
     ]
-  }
+  },
+  "lazyCodeLoading": "requiredComponents",
+  "subPackages": [
+    {
+      "root": "pkg-assessment",
+      "name": "assessment",
+      "pages": [
+        "pages/notice/index",
+        "pages/welcome/index",
+        "pages/assessment/index",
+        "pages/demo/index"
+      ]
+    },
+    {
+      "root": "pkg-detail",
+      "name": "detail",
+      "pages": [
+        "pages/recipe-detail/index"
+      ]
+    },
+    {
+      "root": "pkg-user",
+      "name": "user",
+      "pages": [
+        "pages/login/index",
+        "pages/constitution/index"
+      ]
+    }
+  ]
 }

@@ -172,6 +172,6 @@ Page({
   },
   goDetail(e) {
     const id = e.currentTarget.dataset.id
-    wx.navigateTo({ url: `/pages/recipe-detail/index?id=${id}` })
+    wx.navigateTo({ url: `/pkg-detail/pages/recipe-detail/index?id=${id}` })
   }
 })

@@ -12,7 +12,7 @@ module.exports = {
   // 页面路径常量
   PAGES: {
     HOME: '/pages/home/index',
-    ASSESSMENT: '/pages/assessment/index',
+    ASSESSMENT: '/pkg-assessment/pages/assessment/index',
     RECIPES: '/pages/recipes/index',
     PROFILE: '/pages/profile/index'
   }

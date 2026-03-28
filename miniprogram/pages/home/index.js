@@ -106,9 +106,15 @@ Page({
     this.setData({ [`todayRecommend[${idx}].image_url`]: this.data.defaultCover })
   },
   goAssessment() {
-    wx.navigateTo({ url: '/pages/assessment/index' })
+    wx.navigateTo({ url: '/pkg-assessment/pages/notice/index' })
   },
   goMyRecipes() {
+    let logged = false
+    try { logged = !!wx.getStorageSync('isLoggedIn') } catch (_) { logged = false }
+    if (!logged) {
+      wx.navigateTo({ url: '/pkg-user/pages/login/index?redirect=%2Fpages%2Frecipes%2Findex&tab=1' })
+      return
+    }
     wx.switchTab({ url: '/pages/recipes/index' })
   },
   goSeasonGuide() {
@@ -118,6 +124,12 @@ Page({
     wx.showToast({ title: '暂无消息', icon: 'none' })
   },
   goProfile() {
+    let logged = false
+    try { logged = !!wx.getStorageSync('isLoggedIn') } catch (_) { logged = false }
+    if (!logged) {
+      wx.navigateTo({ url: '/pkg-user/pages/login/index?redirect=%2Fpages%2Fprofile%2Findex&tab=1' })
+      return
+    }
     wx.switchTab({ url: '/pages/profile/index' })
   },
   goConstitution(e) {
@@ -140,6 +152,6 @@ Page({
   },
   goRecipeDetail(e) {
     const id = e.currentTarget.dataset.id
-    wx.navigateTo({ url: `/pages/recipe-detail/index?id=${id}` })
+    wx.navigateTo({ url: `/pkg-detail/pages/recipe-detail/index?id=${id}` })
   }
 })

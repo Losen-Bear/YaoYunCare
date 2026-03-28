@@ -153,7 +153,7 @@ Page({
           confirmText: '膳食食谱',
           success: (modalRes) => {
             if (modalRes.confirm) {
-              const to = `/pages/constitution/index?main=${encodeURIComponent(main)}&types=${encodeURIComponent(types.join(','))}`
+              const to = `/pkg-user/pages/constitution/index?main=${encodeURIComponent(main)}&types=${encodeURIComponent(types.join(','))}`
               wx.navigateTo({
                 url: to,
                 success: (nav) => {
