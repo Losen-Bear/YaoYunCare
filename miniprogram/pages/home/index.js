@@ -1,5 +1,6 @@
 const { getRecipeImage, getRecipeCloudWebpByName, defaultCover, normalizeImageUrl, resolveImageUrl, resolveImageUrls, isSignedCloudTempUrl, toCloudFileID } = require('../../utils/image')
-const { request } = require('../../api/request')
+const { request, getStorage, setStorage } = require('../../api/request')
+const { API_ROUTES, STORAGE_KEYS, PAGES } = require('../../constants/index')
 const HOME_LOGO_FILE_ID = 'cloud://cloud1-8g4fsimf73eedcfd.636c-cloud1-8g4fsimf73eedcfd-1410266719/icons/logo-yy.webp'
 const HOME_BANNERS = [
   { fileID: 'cloud://cloud1-8g4fsimf73eedcfd.636c-cloud1-8g4fsimf73eedcfd-1410266719/home/main-assessment.webp', text: '测体质，领你的专属药膳' },
@@ -83,10 +84,10 @@ Page({
         : (rawUrl && typeof rawUrl === 'string' && rawUrl.length > 0 ? rawUrl : getRecipeImage(item.name || ''))
       item.image_url = await resolveImageUrl(normalizedUrl)
       this.setData({ todayRecommend: [item] })
-      try { wx.setStorageSync('dailyRecommendRecipe', { date: key, item }) } catch (_) { return }
+      setStorage(STORAGE_KEYS.DAILY_RECOMMEND_RECIPE, { date: key, item })
     }
     try {
-      const cached = wx.getStorageSync('dailyRecommendRecipe') || {}
+      const cached = getStorage(STORAGE_KEYS.DAILY_RECOMMEND_RECIPE) || {}
       if (cached && cached.date === key && cached.item) {
         const item = { ...cached.item }
         const url = normalizeImageUrl(item.image_url || '')
@@ -102,17 +103,16 @@ Page({
         return
       }
     } catch (_) { void 0 }
-    request({ url: '/api/constitution/judge-with-recipes', method: 'POST', data: { listAll: true }, showLoading: false })
+    request({ url: API_ROUTES.CONSTITUTION_JUDGE_WITH_RECIPES, method: 'POST', data: { listAll: true }, showLoading: false })
       .then((res) => {
         const arr = Array.isArray(res && res.merged) ? res.merged : Array.isArray(res) ? res : []
         if (arr.length > 0) {
-          try { wx.setStorageSync('allRecipes', arr) } catch (_) { return }
+          setStorage(STORAGE_KEYS.ALL_RECIPES, arr)
         }
         pickOne(arr)
       })
       .catch(() => {
-        let source = []
-        try { source = wx.getStorageSync('allRecipes') || [] } catch (_) { source = [] }
+        const source = getStorage(STORAGE_KEYS.ALL_RECIPES) || []
         if (Array.isArray(source) && source.length > 0) {
           pickOne(source)
           return
@@ -138,16 +138,16 @@ Page({
     this.setData({ [`todayRecommend[${idx}].image_url`]: resolved || this.data.defaultCover })
   },
   goAssessment() {
-    wx.navigateTo({ url: '/pkg-assessment/pages/notice/index' })
+    wx.navigateTo({ url: PAGES.ASSESSMENT_NOTICE })
   },
   goMyRecipes() {
     let logged = false
-    try { logged = !!wx.getStorageSync('isLoggedIn') } catch (_) { logged = false }
+    try { logged = !!getStorage(STORAGE_KEYS.IS_LOGGED_IN) } catch (_) { logged = false }
     if (!logged) {
-      wx.navigateTo({ url: '/pkg-user/pages/login/index?redirect=%2Fpages%2Frecipes%2Findex&tab=1' })
+      wx.navigateTo({ url: `${PAGES.LOGIN}?redirect=${encodeURIComponent(PAGES.RECIPES)}&tab=1` })
       return
     }
-    wx.switchTab({ url: '/pages/recipes/index' })
+    wx.switchTab({ url: PAGES.RECIPES })
   },
   goSeasonGuide() {
     wx.showToast({ title: '敬请期待', icon: 'none' })
@@ -157,17 +157,17 @@ Page({
   },
   goProfile() {
     let logged = false
-    try { logged = !!wx.getStorageSync('isLoggedIn') } catch (_) { logged = false }
+    try { logged = !!getStorage(STORAGE_KEYS.IS_LOGGED_IN) } catch (_) { logged = false }
     if (!logged) {
-      wx.navigateTo({ url: '/pkg-user/pages/login/index?redirect=%2Fpages%2Fprofile%2Findex&tab=1' })
+      wx.navigateTo({ url: `${PAGES.LOGIN}?redirect=${encodeURIComponent(PAGES.PROFILE)}&tab=1` })
       return
     }
-    wx.switchTab({ url: '/pages/profile/index' })
+    wx.switchTab({ url: PAGES.PROFILE })
   },
   goConstitution(e) {
     const t = e.currentTarget.dataset.type || ''
     wx.switchTab({
-      url: '/pages/recipes/index',
+      url: PAGES.RECIPES,
       success: (nav) => {
         if (nav && nav.eventChannel && nav.eventChannel.emit) nav.eventChannel.emit('filter', { constitution: t })
       }
@@ -176,7 +176,7 @@ Page({
   goCategory(e) {
     const tag = e.currentTarget.dataset.tag || ''
     wx.switchTab({
-      url: '/pages/recipes/index',
+      url: PAGES.RECIPES,
       success: (nav) => {
         if (nav && nav.eventChannel && nav.eventChannel.emit) nav.eventChannel.emit('filter', { tag })
       }
@@ -184,6 +184,6 @@ Page({
   },
   goRecipeDetail(e) {
     const id = e.currentTarget.dataset.id
-    wx.navigateTo({ url: `/pkg-detail/pages/recipe-detail/index?id=${id}` })
+    wx.navigateTo({ url: `${PAGES.RECIPE_DETAIL}?id=${id}` })
   }
 })

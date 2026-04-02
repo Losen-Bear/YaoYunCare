@@ -1,3 +1,5 @@
+const { getStorage, setStorage } = require('../../../api/request')
+const { STORAGE_KEYS, PAGES } = require('../../../constants/index')
 Page({
   data: {
     main: '',
@@ -81,21 +83,21 @@ Page({
   },
   goDetail(e) {
     const id = e.currentTarget.dataset.id
-    wx.navigateTo({ url: `/pkg-detail/pages/recipe-detail/index?id=${id}` })
+    wx.navigateTo({ url: `${PAGES.RECIPE_DETAIL}?id=${id}` })
   },
   saveReport() {
     try {
       const report = { main: this.data.main, types: this.data.types, time: Date.now(), result: this.data.result, recipes: this.data.recipesList }
-      const list = wx.getStorageSync('savedReports') || []
+      const list = getStorage(STORAGE_KEYS.SAVED_REPORTS) || []
       list.unshift(report)
-      wx.setStorageSync('savedReports', list.slice(0, 20))
+      setStorage(STORAGE_KEYS.SAVED_REPORTS, list.slice(0, 20))
       wx.showToast({ title: '已保存', icon: 'success' })
-    } catch (_) {}
+    } catch (err) { void err }
   },
   goBack() {
     wx.navigateBack({ delta: 1 })
   },
   retest() {
-    wx.navigateTo({ url: '/pkg-assessment/pages/notice/index' })
+    wx.navigateTo({ url: PAGES.ASSESSMENT_NOTICE })
   }
 })

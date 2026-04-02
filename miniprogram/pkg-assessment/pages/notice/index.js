@@ -1,3 +1,4 @@
+const { PAGES } = require('../../../constants/index')
 Page({
   data: {},
   onLoad() {
@@ -10,7 +11,7 @@ Page({
   },
   onAck() {
     wx.navigateTo({
-      url: '/pkg-assessment/pages/assessment/index',
+      url: PAGES.ASSESSMENT,
       success: (nav) => {
         if (this.profile && nav && nav.eventChannel && nav.eventChannel.emit) {
           nav.eventChannel.emit('profile', this.profile)

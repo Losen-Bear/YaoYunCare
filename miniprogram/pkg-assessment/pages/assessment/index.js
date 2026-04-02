@@ -1,4 +1,5 @@
-const { request } = require('../../../api/request')
+const { request, ensureOpenid, getStorage, setStorage } = require('../../../api/request')
+const { API_ROUTES, STORAGE_KEYS, PAGES } = require('../../../constants/index')
 const BANK = [
   { id: 3, type: 'multi', text: '请问您的日常饮食习惯（可多选）？', options: ['偏辛辣', '偏油腻', '偏生冷', '偏甜腻', '无明显偏好'] },
   { id: 4, type: 'single', text: '请问您的每周运动频率？', options: ['几乎不运动', '1-2次', '3-5次', '每天运动'] },
@@ -42,27 +43,14 @@ Page({
     const pick = [3,4,6,7,8,9,11,12,14,15,17,18,20,21,23,24,26,27,10,13]
     const list = pick.map((id) => BANK.find((q) => q.id === id)).filter(Boolean)
     this.setData({ qList: list, total: list.length })
-    try {
-      const storedOpenid = wx.getStorageSync('openid') || ''
-      if (storedOpenid) this.setData({ openid: storedOpenid })
-    } catch (_) {}
-    if (!this.data.openid && wx && wx.login) {
-      wx.login({
-        success: (resp) => {
-          const code = resp && resp.code ? resp.code : ''
-          if (code) {
-            const { request } = require('../../../api/request')
-            request({ url: '/api/auth/wx-login', method: 'POST', data: { code }, showLoading: false })
-              .then((res) => {
-                const openid = res && res.openid ? res.openid : res && res.data && res.data.openid ? res.data.openid : ''
-                if (openid) { this.setData({ openid }); try { wx.setStorageSync('openid', openid) } catch (_) {} }
-              })
-              .catch(() => {})
-          }
-        }
-      })
+    const storedOpenid = getStorage(STORAGE_KEYS.OPENID) || ''
+    if (storedOpenid) this.setData({ openid: storedOpenid })
+    if (!storedOpenid) {
+      ensureOpenid({ showLoading: false })
+        .then((openid) => { if (openid) this.setData({ openid }) })
+        .catch(() => {})
     }
-    request({ url: '/api/health/check', showLoading: false }).catch(() => { wx.showToast({ title: '云服务不可用', icon: 'none' }) })
+    request({ url: API_ROUTES.HEALTH_CHECK, showLoading: false }).catch(() => { wx.showToast({ title: '云服务不可用', icon: 'none' }) })
   },
   onSwiperChange(e) {
     const idx = e.detail.current || 0
@@ -114,19 +102,17 @@ Page({
     if (!this.data.openid) { wx.showToast({ title: '请先登录', icon: 'none' }); return }
     if (!this.data.allAnswered) { wx.showToast({ title: '请完成所有题目', icon: 'none' }); return }
     const payload = { answers: this.data.answersYN }
-    try { wx.setStorageSync('lastAnswers', this.data.answersYN) } catch (_) {}
-    request({ url: '/api/constitution/judge-with-recipes', method: 'POST', data: payload })
+    setStorage(STORAGE_KEYS.LAST_ANSWERS, this.data.answersYN)
+    request({ url: API_ROUTES.CONSTITUTION_JUDGE_WITH_RECIPES, method: 'POST', data: payload })
       .then((res) => {
         const result = res && res.result ? res.result : {}
         const recipes = Array.isArray(res && res.merged) ? res.merged : []
         const main = result && result.mainConstitution ? result.mainConstitution : ''
         const types = Array.isArray(result && result.primary) && result.primary.length > 0 ? result.primary : (main ? main.split('+') : [])
-        try {
-          wx.setStorageSync('lastJudgeResult', { result, recipes, time: Date.now() })
-          const history = wx.getStorageSync('judgeHistory') || []
-          history.unshift({ result, time: Date.now() })
-          wx.setStorageSync('judgeHistory', history.slice(0, 20))
-        } catch (_) {}
+        setStorage(STORAGE_KEYS.LAST_JUDGE_RESULT, { result, recipes, time: Date.now() })
+        const history = getStorage(STORAGE_KEYS.JUDGE_HISTORY) || []
+        history.unshift({ result, time: Date.now() })
+        setStorage(STORAGE_KEYS.JUDGE_HISTORY, history.slice(0, 20))
 
         const infos = {
           平和质: '体形匀称，精力充沛，面色红润，情绪稳定。建议保持规律作息、均衡饮食、适量运动，继续巩固良好状态。',
@@ -153,7 +139,7 @@ Page({
           confirmText: '膳食食谱',
           success: (modalRes) => {
             if (modalRes.confirm) {
-              const to = `/pkg-user/pages/constitution/index?main=${encodeURIComponent(main)}&types=${encodeURIComponent(types.join(','))}`
+              const to = `${PAGES.CONSTITUTION}?main=${encodeURIComponent(main)}&types=${encodeURIComponent(types.join(','))}`
               wx.navigateTo({
                 url: to,
                 success: (nav) => {
@@ -163,7 +149,7 @@ Page({
                 }
               })
             } else if (modalRes.cancel) {
-              wx.switchTab({ url: '/pages/home/index' })
+              wx.switchTab({ url: PAGES.HOME })
             }
           }
         })
