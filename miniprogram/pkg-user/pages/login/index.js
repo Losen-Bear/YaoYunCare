@@ -27,36 +27,56 @@ Page({
         request({ url: '/api/auth/wx-login', method: 'POST', data: { code } })
           .then((auth) => {
             const openid = auth && auth.openid ? auth.openid : ''
-            wx.getUserProfile({
-              desc: '用于完善个人资料',
-              success: (res) => {
-                const profile = res && res.userInfo ? res.userInfo : {}
-                try {
-                  if (openid) wx.setStorageSync('openid', openid)
-                  wx.setStorageSync('userProfile', profile)
-                  wx.setStorageSync('isLoggedIn', true)
-                } catch (_) { void 0 }
-                if (openid && wx && wx.cloud && wx.cloud.database) {
-                  try {
-                    const db = wx.cloud.database()
-                    db.collection('users').doc(openid).set({
-                      data: {
-                        openid,
-                        nickName: profile.nickName || '',
-                        avatarUrl: profile.avatarUrl || '',
-                        updatedAt: Date.now()
-                      }
-                    }).catch(() => { void 0 })
-                  } catch (_) { void 0 }
+            const syncUserToCloud = (userDoc) => {
+              if (!openid || !wx || !wx.cloud || !wx.cloud.database) return
+              try {
+                const db = wx.cloud.database()
+                db.collection('users').doc(openid).update({ data: userDoc })
+                  .catch(() => db.collection('users').doc(openid).set({ data: userDoc }).catch(() => { void 0 }))
+              } catch (_) { void 0 }
+            }
+            const finishLogin = (profile, syncProfile) => {
+              const userProfile = profile && typeof profile === 'object' ? profile : {}
+              try {
+                if (openid) wx.setStorageSync('openid', openid)
+                wx.setStorageSync('isLoggedIn', true)
+                if (syncProfile) wx.setStorageSync('userProfile', userProfile)
+              } catch (_) { void 0 }
+              const userDoc = { openid, updatedAt: Date.now() }
+              if (syncProfile) {
+                userDoc.nickName = userProfile.nickName || ''
+                userDoc.avatarUrl = userProfile.avatarUrl || ''
+              }
+              syncUserToCloud(userDoc)
+              wx.hideLoading()
+              wx.showToast({ title: '登录成功', icon: 'success' })
+              const url = this._redirect || ''
+              if (this._isTab && url) { wx.switchTab({ url }); return }
+              if (url) { wx.navigateTo({ url }); return }
+              wx.switchTab({ url: '/pages/home/index' })
+            }
+            wx.hideLoading()
+            wx.showModal({
+              title: '授权提示',
+              content: '是否同意授权昵称和头像，用于完善个人资料展示？',
+              confirmText: '同意',
+              cancelText: '不同意',
+              success: (modalRes) => {
+                if (modalRes && modalRes.confirm && wx && wx.getUserProfile) {
+                  wx.showLoading({ title: '登录中' })
+                  wx.getUserProfile({
+                    desc: '用于完善个人资料',
+                    success: (res) => {
+                      const profile = res && res.userInfo ? res.userInfo : {}
+                      finishLogin(profile, true)
+                    },
+                    fail: () => { finishLogin({}, false) }
+                  })
+                  return
                 }
-                wx.hideLoading()
-                wx.showToast({ title: '登录成功', icon: 'success' })
-                const url = this._redirect || ''
-                if (this._isTab && url) { wx.switchTab({ url }); return }
-                if (url) { wx.navigateTo({ url }); return }
-                wx.switchTab({ url: '/pages/home/index' })
+                finishLogin({}, false)
               },
-              fail: () => { wx.hideLoading(); wx.showToast({ title: '已取消授权', icon: 'none' }) }
+              fail: () => { finishLogin({}, false) }
             })
           })
           .catch(() => { wx.hideLoading(); wx.showToast({ title: '云登录失败', icon: 'none' }) })
