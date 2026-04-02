@@ -1,3 +1,4 @@
+.page{min-height:100vh;box-sizing:border-box;padding-bottom:calc(env(safe-area-inset-bottom) + 132rpx)}
 .search{padding:16rpx}
 .input{background:#FCFAF3;border:1px solid #E0D6C2;border-radius:999px;padding:16rpx 20rpx;font-size:28rpx}
 .tags{display:flex;white-space:nowrap;padding:8rpx 16rpx;gap:12rpx}

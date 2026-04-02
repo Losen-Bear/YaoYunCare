@@ -20,7 +20,7 @@ Page({
       }
     } catch (_) { return }
     let p = {}
-    try { p = wx.getStorageSync('userProfile') || {} } catch (_) {}
+    try { p = wx.getStorageSync('userProfile') || {} } catch (err) { void err }
     const profile = { nickName: p.nickName || '', avatarUrl: p.avatarUrl || '' }
     let archive = { main: '', timeText: '' }
     try {
@@ -29,14 +29,14 @@ Page({
         const t = last.time || Date.now()
         archive = { main: last.result.mainConstitution, timeText: this.formatTime(t) }
       }
-    } catch (_) {}
+    } catch (err) { void err }
     let favorites = []
-    try { favorites = wx.getStorageSync('favorites') || [] } catch (_) {}
+    try { favorites = wx.getStorageSync('favorites') || [] } catch (err) { void err }
     let history = []
     try {
       const his = wx.getStorageSync('judgeHistory') || []
       history = his.map((x) => ({ main: x.result?.mainConstitution || '', timeText: this.formatTime(x.time || Date.now()) }))
-    } catch (_) {}
+    } catch (err) { void err }
     this.setData({ profile, archive, favorites, history })
   },
   formatTime(ts) {

@@ -7,6 +7,8 @@
   background: #2F5E3D;
   display: flex;
   padding-bottom: env(safe-area-inset-bottom);
+  box-sizing: content-box;
+  z-index: 999;
 }
 
 .tab-bar-border {

@@ -45,7 +45,7 @@ Page({
     try {
       const storedOpenid = wx.getStorageSync('openid') || ''
       if (storedOpenid) this.setData({ openid: storedOpenid })
-    } catch (_) {}
+    } catch (err) { void err }
     if (!this.data.openid && wx && wx.login) {
       wx.login({
         success: (resp) => {
@@ -55,7 +55,7 @@ Page({
             request({ url: '/api/auth/wx-login', method: 'POST', data: { code }, showLoading: false })
               .then((res) => {
                 const openid = res && res.openid ? res.openid : res && res.data && res.data.openid ? res.data.openid : ''
-                if (openid) { this.setData({ openid }); try { wx.setStorageSync('openid', openid) } catch (_) {} }
+                if (openid) { this.setData({ openid }); try { wx.setStorageSync('openid', openid) } catch (err) { void err } }
               })
               .catch(() => {})
           }
@@ -114,7 +114,7 @@ Page({
     if (!this.data.openid) { wx.showToast({ title: '请先登录', icon: 'none' }); return }
     if (!this.data.allAnswered) { wx.showToast({ title: '请完成所有题目', icon: 'none' }); return }
     const payload = { answers: this.data.answersYN }
-    try { wx.setStorageSync('lastAnswers', this.data.answersYN) } catch (_) {}
+    try { wx.setStorageSync('lastAnswers', this.data.answersYN) } catch (err) { void err }
     request({ url: '/api/constitution/judge-with-recipes', method: 'POST', data: payload })
       .then((res) => {
         const result = res && res.result ? res.result : {}
@@ -126,7 +126,7 @@ Page({
           const history = wx.getStorageSync('judgeHistory') || []
           history.unshift({ result, time: Date.now() })
           wx.setStorageSync('judgeHistory', history.slice(0, 20))
-        } catch (_) {}
+        } catch (err) { void err }
 
         const infos = {
           平和质: '体形匀称，精力充沛，面色红润，情绪稳定。建议保持规律作息、均衡饮食、适量运动，继续巩固良好状态。',

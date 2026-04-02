@@ -14,7 +14,7 @@ function normalizeResponse(body) {
   return body
 }
 
-function request({ url, method = 'GET', data = {}, header = {}, showLoading = true }) {
+function request({ url, data = {}, showLoading = true }) {
   return new Promise((resolve, reject) => {
     if (useCloud && wx && wx.cloud && cloudAvailable) {
       const name = mapToCloudFunction(url)
@@ -24,7 +24,7 @@ function request({ url, method = 'GET', data = {}, header = {}, showLoading = tr
         try {
           const openid = wx.getStorageSync('openid') || ''
           if (openid) payload = { ...payload, openid }
-        } catch (_) {}
+        } catch (err) { void err }
       }
       if (showLoading) wx.showLoading({ title: '加载中' })
       wx.cloud.callFunction({ name, data: payload })

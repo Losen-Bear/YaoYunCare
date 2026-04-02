@@ -90,7 +90,7 @@ Page({
       list.unshift(report)
       wx.setStorageSync('savedReports', list.slice(0, 20))
       wx.showToast({ title: '已保存', icon: 'success' })
-    } catch (_) {}
+    } catch (err) { void err }
   },
   goBack() {
     wx.navigateBack({ delta: 1 })

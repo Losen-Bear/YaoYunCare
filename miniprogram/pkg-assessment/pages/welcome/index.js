@@ -29,7 +29,7 @@ Page({
           if (wx.getUserProfile) {
             wx.getUserProfile({
               desc: '用于完善资料',
-              success: (info) => { try { wx.setStorageSync('userProfile', info.userInfo) } catch (_) {} },
+              success: (info) => { try { wx.setStorageSync('userProfile', info.userInfo) } catch (err) { void err } },
               complete: navToAssess
             })
           } else { navToAssess() }
