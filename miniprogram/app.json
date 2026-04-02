@@ -1,14 +1,9 @@
 {
   "pages": [
     "pages/home/index",
-    "pages/assessment/index",
-    "pages/constitution/index",
     "pages/recipes/index",
     "pages/assistant/index",
-    "pages/recipe-detail/index",
-    "pages/profile/index",
-    "pages/welcome/index",
-    "pages/demo/index"
+    "pages/profile/index"
   ],
   "window": {
     "navigationBarTitleText": "养生药膳",
@@ -18,35 +13,55 @@
     "backgroundTextStyle": "light"
   },
   "tabBar": {
-    "backgroundColor": "#2F5E3D",
-    "borderStyle": "black",
+    "custom": true,
     "color": "#D7CBB2",
     "selectedColor": "#C8AD66",
+    "backgroundColor": "#2F5E3D",
     "list": [
       {
         "pagePath": "pages/home/index",
-        "text": "首页",
-        "iconPath": "assets/home/top-1.jpg",
-        "selectedIconPath": "assets/home/top-1.jpg"
+        "text": "首页"
       },
       {
         "pagePath": "pages/recipes/index",
-        "text": "药膳馆",
-        "iconPath": "assets/home/top-2.jpg",
-        "selectedIconPath": "assets/home/top-2.jpg"
+        "text": "药膳馆"
       },
       {
         "pagePath": "pages/assistant/index",
-        "text": "药膳助手",
-        "iconPath": "assets/home/top-3.jpg",
-        "selectedIconPath": "assets/home/top-3.jpg"
+        "text": "药膳助手"
       },
       {
         "pagePath": "pages/profile/index",
-        "text": "我的",
-        "iconPath": "assets/home/top-4.jpg",
-        "selectedIconPath": "assets/home/top-4.jpg"
+        "text": "我的"
       }
     ]
-  }
+  },
+  "lazyCodeLoading": "requiredComponents",
+  "subPackages": [
+    {
+      "root": "pkg-assessment",
+      "name": "assessment",
+      "pages": [
+        "pages/notice/index",
+        "pages/welcome/index",
+        "pages/assessment/index",
+        "pages/demo/index"
+      ]
+    },
+    {
+      "root": "pkg-detail",
+      "name": "detail",
+      "pages": [
+        "pages/recipe-detail/index"
+      ]
+    },
+    {
+      "root": "pkg-user",
+      "name": "user",
+      "pages": [
+        "pages/login/index",
+        "pages/constitution/index"
+      ]
+    }
+  ]
 }

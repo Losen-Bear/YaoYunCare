@@ -1,6 +1,6 @@
 const cloud = require('wx-server-sdk')
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
-exports.main = async (event, context) => {
+exports.main = async (event) => {
   try {
     const code = event && event.code ? String(event.code) : ''
     if (!code) return { code: 400, message: '缺少登录凭证code', data: null }
@@ -13,7 +13,7 @@ exports.main = async (event, context) => {
     try {
       const wxContext = cloud.getWXContext()
       if (wxContext && wxContext.OPENID) return { code: 200, message: 'ok', data: { openid: wxContext.OPENID, session_key: '' } }
-    } catch (_) {}
+    } catch (err) { void err }
     return { code: 500, message: '登录失败', data: null }
   }
 }

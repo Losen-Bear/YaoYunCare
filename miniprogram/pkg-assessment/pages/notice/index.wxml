@@ -1,0 +1,9 @@
+<view class="container">
+  <view class="card">
+    <view class="title">温馨提示</view>
+    <view class="content">本内容仅为健康科普建议，非医疗处方。体质因人而异，如有病症，请及时就医。</view>
+  </view>
+  <view class="actions">
+    <button type="primary" bindtap="onAck">已阅读并知悉</button>
+  </view>
+</view>

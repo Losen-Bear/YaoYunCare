@@ -1,3 +1,11 @@
+const { normalizeImageUrl, resolveImageUrls } = require('../../utils/image')
+const { getStorage } = require('../../api/request')
+const { STORAGE_KEYS } = require('../../constants/index')
+const ENTRY_FILE_ID = 'cloud://cloud1-8g4fsimf73eedcfd.636c-cloud1-8g4fsimf73eedcfd-1410266719/assistant/assistant-main.webp'
+const SONGNIAN_BG_FILE_ID = 'cloud://cloud1-8g4fsimf73eedcfd.636c-cloud1-8g4fsimf73eedcfd-1410266719/assistant/songnian-bg.webp'
+const QINGHE_BG_FILE_ID = 'cloud://cloud1-8g4fsimf73eedcfd.636c-cloud1-8g4fsimf73eedcfd-1410266719/assistant/qinghe-bg.webp'
+const SONGNIAN_AVATAR_FILE_ID = 'cloud://cloud1-8g4fsimf73eedcfd.636c-cloud1-8g4fsimf73eedcfd-1410266719/assistant/songnian.webp'
+const QINGHE_AVATAR_FILE_ID = 'cloud://cloud1-8g4fsimf73eedcfd.636c-cloud1-8g4fsimf73eedcfd-1410266719/assistant/qinghe.webp'
 const CHAT_SCRIPT = {
   '你好': {
     songnian: '您好，我是松年，专注温补调养、温而不燥，专为虚寒体质定制温和药膳。',
@@ -74,21 +82,44 @@ Page({
     defaultAvatar: 'https://res.wx.qq.com/op_res/Y3uW5mC3E-placeholder-avatar.png',
     entryVisible: true,
     entryReveal: false,
-    entryImage: '/assets/assistant/assistant-main.png',
-    idleBackgroundImage: '/assets/assistant/assistant-main.png',
+    entryImage: '',
+    idleBackgroundImage: '',
     activeSpeakerRole: '',
     roleBackgroundVisible: { songnian: false, qinghe: false },
     backgroundImages: {
-      songnian: '/assets/assistant/songnian-bg.png',
-      qinghe: '/assets/assistant/qinghe-bg.png'
+      songnian: '',
+      qinghe: ''
     },
     assistantAvatars: {
-      songnian: '/assets/assistant/songnian.png',
-      qinghe: '/assets/assistant/qinghe.png'
+      songnian: '',
+      qinghe: ''
     }
   },
-  onLoad() {},
+  onLoad() {
+    this.resolveStaticImages()
+  },
+  async resolveStaticImages() {
+    const urls = [ENTRY_FILE_ID, SONGNIAN_BG_FILE_ID, QINGHE_BG_FILE_ID, SONGNIAN_AVATAR_FILE_ID, QINGHE_AVATAR_FILE_ID]
+    const resolved = await resolveImageUrls(urls)
+    this.setData({
+      entryImage: resolved[0] || '',
+      idleBackgroundImage: resolved[0] || '',
+      backgroundImages: {
+        songnian: resolved[1] || '',
+        qinghe: resolved[2] || ''
+      },
+      assistantAvatars: {
+        songnian: resolved[3] || '',
+        qinghe: resolved[4] || ''
+      }
+    })
+  },
   onShow() {
+    if (typeof this.getTabBar === 'function' && this.getTabBar()) {
+      this.getTabBar().setData({
+        selected: 2
+      })
+    }
     this.syncUserProfile()
     this.startEntryAnimation()
   },
@@ -121,21 +152,47 @@ Page({
     }, ENTRY_DURATION))
   },
   onEntryImageError() {
-    if (this.data.entryImage !== '/assets/assistant/songnian-bg.png') {
-      this.setData({ entryImage: '/assets/assistant/songnian-bg.png' })
+    const songnian = (this.data.backgroundImages && this.data.backgroundImages.songnian) || ''
+    const qinghe = (this.data.backgroundImages && this.data.backgroundImages.qinghe) || ''
+    if (songnian && this.data.entryImage !== songnian) {
+      this.setData({ entryImage: songnian })
       return
     }
-    if (this.data.entryImage !== '/assets/assistant/qinghe-bg.png') {
-      this.setData({ entryImage: '/assets/assistant/qinghe-bg.png' })
+    if (qinghe && this.data.entryImage !== qinghe) {
+      this.setData({ entryImage: qinghe })
+      return
+    }
+    if (this.data.entryImage) {
+      this.setData({ entryImage: '' })
     }
   },
+  onIdleBackgroundError() {
+    if (this.data.idleBackgroundImage) this.setData({ idleBackgroundImage: '' })
+  },
+  onBackgroundImageError(e) {
+    const role = e && e.currentTarget && e.currentTarget.dataset ? e.currentTarget.dataset.role : ''
+    if (role !== 'songnian' && role !== 'qinghe') return
+    const next = this.data.backgroundImages || {}
+    if (!next[role]) return
+    this.setData({
+      [`backgroundImages.${role}`]: '',
+      [`roleBackgroundVisible.${role}`]: false
+    })
+  },
+  onAssistantAvatarError(e) {
+    const role = e && e.currentTarget && e.currentTarget.dataset ? e.currentTarget.dataset.role : ''
+    if (role !== 'songnian' && role !== 'qinghe') return
+    const avatars = this.data.assistantAvatars || {}
+    if (!avatars[role]) return
+    this.setData({ [`assistantAvatars.${role}`]: '' })
+  },
   syncUserProfile() {
-    let p = {}
-    try { p = wx.getStorageSync('userProfile') || {} } catch (_) { p = {} }
+    const p = getStorage(STORAGE_KEYS.USER_PROFILE) || {}
+    const avatarUrl = normalizeImageUrl(p.avatarUrl || '')
     this.setData({
       userProfile: {
         nickName: p.nickName || '',
-        avatarUrl: p.avatarUrl || ''
+        avatarUrl
       }
     })
   },
@@ -253,7 +310,7 @@ Page({
       id: `${Date.now()}-${Math.floor(Math.random() * 10000)}`,
       type: 'user',
       name: profile.nickName || '用户',
-      avatarUrl: profile.avatarUrl || '',
+      avatarUrl: normalizeImageUrl(profile.avatarUrl || ''),
       text
     }
   },
@@ -264,7 +321,7 @@ Page({
       type: 'assistant',
       role,
       name,
-      avatarUrl: assistantAvatars[role] || '',
+      avatarUrl: normalizeImageUrl(assistantAvatars[role] || ''),
       text
     }
   },

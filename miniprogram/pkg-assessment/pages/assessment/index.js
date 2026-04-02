@@ -1,4 +1,5 @@
-const { request } = require('../../api/request')
+const { request, ensureOpenid, getStorage, setStorage } = require('../../../api/request')
+const { API_ROUTES, STORAGE_KEYS, PAGES } = require('../../../constants/index')
 const BANK = [
   { id: 3, type: 'multi', text: '请问您的日常饮食习惯（可多选）？', options: ['偏辛辣', '偏油腻', '偏生冷', '偏甜腻', '无明显偏好'] },
   { id: 4, type: 'single', text: '请问您的每周运动频率？', options: ['几乎不运动', '1-2次', '3-5次', '每天运动'] },
@@ -42,27 +43,14 @@ Page({
     const pick = [3,4,6,7,8,9,11,12,14,15,17,18,20,21,23,24,26,27,10,13]
     const list = pick.map((id) => BANK.find((q) => q.id === id)).filter(Boolean)
     this.setData({ qList: list, total: list.length })
-    try {
-      const storedOpenid = wx.getStorageSync('openid') || ''
-      if (storedOpenid) this.setData({ openid: storedOpenid })
-    } catch (_) {}
-    if (!this.data.openid && wx && wx.login) {
-      wx.login({
-        success: (resp) => {
-          const code = resp && resp.code ? resp.code : ''
-          if (code) {
-            const { request } = require('../../api/request')
-            request({ url: '/api/auth/wx-login', method: 'POST', data: { code }, showLoading: false })
-              .then((res) => {
-                const openid = res && res.openid ? res.openid : res && res.data && res.data.openid ? res.data.openid : ''
-                if (openid) { this.setData({ openid }); try { wx.setStorageSync('openid', openid) } catch (_) {} }
-              })
-              .catch(() => {})
-          }
-        }
-      })
+    const storedOpenid = getStorage(STORAGE_KEYS.OPENID) || ''
+    if (storedOpenid) this.setData({ openid: storedOpenid })
+    if (!storedOpenid) {
+      ensureOpenid({ showLoading: false })
+        .then((openid) => { if (openid) this.setData({ openid }) })
+        .catch(() => {})
     }
-    request({ url: '/api/health/check', showLoading: false }).catch(() => { wx.showToast({ title: '云服务不可用', icon: 'none' }) })
+    request({ url: API_ROUTES.HEALTH_CHECK, showLoading: false }).catch(() => { wx.showToast({ title: '云服务不可用', icon: 'none' }) })
   },
   onSwiperChange(e) {
     const idx = e.detail.current || 0
@@ -114,25 +102,54 @@ Page({
     if (!this.data.openid) { wx.showToast({ title: '请先登录', icon: 'none' }); return }
     if (!this.data.allAnswered) { wx.showToast({ title: '请完成所有题目', icon: 'none' }); return }
     const payload = { answers: this.data.answersYN }
-    try { wx.setStorageSync('lastAnswers', this.data.answersYN) } catch (_) {}
-    request({ url: '/api/constitution/judge-with-recipes', method: 'POST', data: payload })
+    setStorage(STORAGE_KEYS.LAST_ANSWERS, this.data.answersYN)
+    request({ url: API_ROUTES.CONSTITUTION_JUDGE_WITH_RECIPES, method: 'POST', data: payload })
       .then((res) => {
         const result = res && res.result ? res.result : {}
         const recipes = Array.isArray(res && res.merged) ? res.merged : []
         const main = result && result.mainConstitution ? result.mainConstitution : ''
         const types = Array.isArray(result && result.primary) && result.primary.length > 0 ? result.primary : (main ? main.split('+') : [])
-        try {
-          wx.setStorageSync('lastJudgeResult', { result, recipes, time: Date.now() })
-          const history = wx.getStorageSync('judgeHistory') || []
-          history.unshift({ result, time: Date.now() })
-          wx.setStorageSync('judgeHistory', history.slice(0, 20))
-        } catch (_) {}
-        const to = `/pages/constitution/index?main=${encodeURIComponent(main)}&types=${encodeURIComponent(types.join(','))}`
-        wx.navigateTo({
-          url: to,
-          success: (nav) => {
-            if (nav && nav.eventChannel && nav.eventChannel.emit) {
-              nav.eventChannel.emit('judge', { result, recipes })
+        setStorage(STORAGE_KEYS.LAST_JUDGE_RESULT, { result, recipes, time: Date.now() })
+        const history = getStorage(STORAGE_KEYS.JUDGE_HISTORY) || []
+        history.unshift({ result, time: Date.now() })
+        setStorage(STORAGE_KEYS.JUDGE_HISTORY, history.slice(0, 20))
+
+        const infos = {
+          平和质: '体形匀称，精力充沛，面色红润，情绪稳定。建议保持规律作息、均衡饮食、适量运动，继续巩固良好状态。',
+          气虚质: '元气不足，易疲劳，少气懒言，动则汗出，抵抗力偏弱。多与劳累过度、饮食不规律相关，宜健脾益气，规律作息。',
+          阳虚质: '阳气不足，畏寒怕冷，手脚冰凉，喜温喜热，大便溏薄。多与先天不足或过食生冷相关，宜温阳祛寒，少食生冷。',
+          阴虚质: '阴液不足，口干咽燥，手足心热，夜间盗汗，大便干结。多与熬夜劳心、过食辛辣相关，宜滋阴润燥，早睡少熬夜。',
+          痰湿质: '痰湿内停，体沉乏力，困倦黏腻，口中黏腻，大便粘滞。多与嗜油腻、缺乏运动相关，宜化痰祛湿，清淡饮食。',
+          湿热质: '湿热内蕴，面部出油，口苦口臭，小便黄赤，大便黏滞。多与湿热环境或嗜辛辣油炸相关，宜清热利湿，少辛辣油腻。',
+          血瘀质: '血行不畅，面色晦暗，有色斑，疼痛固定。女性多痛经经血有块。多与久坐久立、情绪郁结相关，宜活血通络，适量运动。',
+          气郁质: '气机郁滞，情绪低落或烦躁，胸闷善太息，睡眠多梦。多与精神压力大相关，宜疏肝解郁，规律运动与情绪管理。',
+          特禀质: '禀赋特殊，易过敏，皮肤瘙痒或荨麻疹，换季明显。多与遗传相关，宜避敏原，增强防护，遵从个体化调理。'
+        }
+        
+        let mainType = main;
+        if (main && main.includes('+')) {
+          mainType = main.split('+')[0];
+        }
+        const infoText = infos[mainType] || '您的体质详情请查看膳食食谱。';
+
+        wx.showModal({
+          title: `检测结果：${main}`,
+          content: infoText,
+          cancelText: '返回',
+          confirmText: '膳食食谱',
+          success: (modalRes) => {
+            if (modalRes.confirm) {
+              const to = `${PAGES.CONSTITUTION}?main=${encodeURIComponent(main)}&types=${encodeURIComponent(types.join(','))}`
+              wx.navigateTo({
+                url: to,
+                success: (nav) => {
+                  if (nav && nav.eventChannel && nav.eventChannel.emit) {
+                    nav.eventChannel.emit('judge', { result, recipes })
+                  }
+                }
+              })
+            } else if (modalRes.cancel) {
+              wx.switchTab({ url: PAGES.HOME })
             }
           }
         })

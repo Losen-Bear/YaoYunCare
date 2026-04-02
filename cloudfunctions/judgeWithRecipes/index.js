@@ -85,7 +85,7 @@ async function buildImageUrlMap(fileIDs) {
         if (id && url) m[id] = url
         return m
       }, {})
-    } catch (_) {}
+    } catch (err) { void err }
   }
   return urlMap
 }
@@ -102,7 +102,7 @@ async function fetchAllRecipes() {
       docs.forEach((doc) => list.push(doc))
       skip += pageSize
     }
-  } catch (_) {}
+  } catch (err) { void err }
   const fileIDs = list
     .map((doc) => {
       const id = pickFileID(doc)

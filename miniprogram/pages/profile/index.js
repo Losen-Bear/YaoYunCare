@@ -1,3 +1,5 @@
+const { getStorage } = require('../../api/request')
+const { STORAGE_KEYS, PAGES } = require('../../constants/index')
 Page({
   data: {
     profile: { nickName: '', avatarUrl: '' },
@@ -7,24 +9,34 @@ Page({
     history: []
   },
   onShow() {
-    let p = {}
-    try { p = wx.getStorageSync('userProfile') || {} } catch (_) {}
+    if (typeof this.getTabBar === 'function' && this.getTabBar()) {
+      this.getTabBar().setData({
+        selected: 3
+      })
+    }
+    try {
+      const logged = !!getStorage(STORAGE_KEYS.IS_LOGGED_IN)
+      if (!logged) {
+        wx.navigateTo({ url: `${PAGES.LOGIN}?redirect=${encodeURIComponent(PAGES.PROFILE)}&tab=1` })
+        return
+      }
+    } catch (_) { return }
+    const p = getStorage(STORAGE_KEYS.USER_PROFILE) || {}
     const profile = { nickName: p.nickName || '', avatarUrl: p.avatarUrl || '' }
     let archive = { main: '', timeText: '' }
     try {
-      const last = wx.getStorageSync('lastJudgeResult') || {}
+      const last = getStorage(STORAGE_KEYS.LAST_JUDGE_RESULT) || {}
       if (last.result && last.result.mainConstitution) {
         const t = last.time || Date.now()
         archive = { main: last.result.mainConstitution, timeText: this.formatTime(t) }
       }
-    } catch (_) {}
-    let favorites = []
-    try { favorites = wx.getStorageSync('favorites') || [] } catch (_) {}
+    } catch (err) { void err }
+    const favorites = getStorage(STORAGE_KEYS.FAVORITES) || []
     let history = []
     try {
-      const his = wx.getStorageSync('judgeHistory') || []
+      const his = getStorage(STORAGE_KEYS.JUDGE_HISTORY) || []
       history = his.map((x) => ({ main: x.result?.mainConstitution || '', timeText: this.formatTime(x.time || Date.now()) }))
-    } catch (_) {}
+    } catch (err) { void err }
     this.setData({ profile, archive, favorites, history })
   },
   formatTime(ts) {
@@ -37,23 +49,23 @@ Page({
   },
   viewReport() {
     try {
-      const last = wx.getStorageSync('lastJudgeResult') || {}
+      const last = getStorage(STORAGE_KEYS.LAST_JUDGE_RESULT) || {}
       const result = last.result || {}
       const recipes = last.recipes || []
       const main = result.mainConstitution || ''
       const types = Array.isArray(result.primary) && result.primary.length ? result.primary : (main ? main.split('+') : [])
       wx.navigateTo({
-        url: `/pages/constitution/index?main=${encodeURIComponent(main)}&types=${encodeURIComponent(types.join(','))}`,
+        url: `${PAGES.CONSTITUTION}?main=${encodeURIComponent(main)}&types=${encodeURIComponent(types.join(','))}`,
         success: (nav) => { if (nav && nav.eventChannel && nav.eventChannel.emit) nav.eventChannel.emit('judge', { result, recipes }) }
       })
     } catch (_) { wx.showToast({ title: '无报告', icon: 'none' }) }
   },
   retest() {
-    wx.navigateTo({ url: '/pages/assessment/index' })
+    wx.navigateTo({ url: PAGES.ASSESSMENT_NOTICE })
   },
   goDetail(e) {
     const id = e.currentTarget.dataset.id
-    wx.navigateTo({ url: `/pages/recipe-detail/index?id=${id}` })
+    wx.navigateTo({ url: `${PAGES.RECIPE_DETAIL}?id=${id}` })
   },
   menu(e) {
     const key = e.currentTarget.dataset.key
