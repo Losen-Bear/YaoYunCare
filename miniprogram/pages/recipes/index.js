@@ -1,5 +1,6 @@
 const { getRecipeImage, getRecipeCloudWebpByName, defaultCover, isSignedCloudTempUrl, normalizeImageUrl, resolveImageUrl, resolveImageUrls, toCloudFileID } = require('../../utils/image')
-const { request } = require('../../api/request')
+const { request, ensureOpenid, getStorage, setStorage } = require('../../api/request')
+const { API_ROUTES, STORAGE_KEYS, PAGES } = require('../../constants/index')
 const REMOVED_RECIPE_NAMES = new Set(['冬瓜排骨海带汤'])
 Page({
   data: {
@@ -38,7 +39,7 @@ Page({
       return { ...it, image_url: preferred || fallback || this.data.defaultCover }
     })
     this.setData({ allRecipes: next })
-    try { wx.setStorageSync('allRecipes', next) } catch (_) { void 0 }
+    setStorage(STORAGE_KEYS.ALL_RECIPES, next)
     this.applyFilter()
   },
   onShow() {
@@ -67,7 +68,7 @@ Page({
       { id: 'r22', name: '赤小豆冬瓜汤', constitution: '湿热', effect: '淡渗利湿', difficulty: '易', time: '50min', image_url: getRecipeImage('赤小豆冬瓜汤') }
     ]
     try {
-      const last = wx.getStorageSync('lastJudgeResult') || {}
+      const last = getStorage(STORAGE_KEYS.LAST_JUDGE_RESULT) || {}
       const list = Array.isArray(last.recipes) ? last.recipes : []
       const merged = list.map((x, i) => ({
         id: x.id || `m${i}`,
@@ -80,14 +81,14 @@ Page({
       }))
       const all = [...merged, ...base].filter((item) => !REMOVED_RECIPE_NAMES.has(item && item.name ? item.name : ''))
       this.setData({ allRecipes: all })
-      try { wx.setStorageSync('allRecipes', all) } catch (_) { void 0 }
+      setStorage(STORAGE_KEYS.ALL_RECIPES, all)
     } catch (_) {
       this.setData({ allRecipes: base })
-      try { wx.setStorageSync('allRecipes', base) } catch (_) { void 0 }
+      setStorage(STORAGE_KEYS.ALL_RECIPES, base)
     }
     this.refreshAllRecipeImages()
     const loadCloud = () => {
-      request({ url: '/api/constitution/judge-with-recipes', method: 'POST', data: { listAll: true }, showLoading: false })
+      request({ url: API_ROUTES.CONSTITUTION_JUDGE_WITH_RECIPES, method: 'POST', data: { listAll: true }, showLoading: false })
         .then((res) => {
           const arr = (Array.isArray(res && res.merged) ? res.merged : Array.isArray(res) ? res : []).filter((item) => !REMOVED_RECIPE_NAMES.has(item && item.name ? item.name : ''))
           const map = {}
@@ -120,33 +121,14 @@ Page({
 
           const finalRecipes = [...updated, ...newItems].filter((item) => !REMOVED_RECIPE_NAMES.has(item && item.name ? item.name : ''))
           this.setData({ allRecipes: finalRecipes })
-          try { wx.setStorageSync('allRecipes', finalRecipes) } catch (_) { void 0 }
+          setStorage(STORAGE_KEYS.ALL_RECIPES, finalRecipes)
           this.refreshAllRecipeImages()
         })
         .catch(() => {})
     }
-    try {
-      const openid = wx.getStorageSync('openid') || ''
-      if (openid) loadCloud()
-      else if (wx && wx.login) {
-        wx.login({
-          success: (resp) => {
-            const code = resp && resp.code ? resp.code : ''
-            if (code) {
-              const { request } = require('../../api/request')
-              request({ url: '/api/auth/wx-login', method: 'POST', data: { code }, showLoading: false })
-                .then((r) => {
-                  const oid = r && r.openid ? r.openid : r && r.data && r.data.openid ? r.data.openid : ''
-                  if (oid) { try { wx.setStorageSync('openid', oid) } catch (_) { void 0 } }
-                  loadCloud()
-                })
-                .catch(() => { loadCloud() })
-            } else { loadCloud() }
-          },
-          fail: () => { loadCloud() }
-        })
-      } else { loadCloud() }
-    } catch (_) { loadCloud() }
+    const openid = getStorage(STORAGE_KEYS.OPENID) || ''
+    if (openid) loadCloud()
+    else ensureOpenid({ showLoading: false }).finally(loadCloud)
     if (this.getOpenerEventChannel) {
       const ec = this.getOpenerEventChannel()
       if (ec && ec.on) {
@@ -216,6 +198,6 @@ Page({
   },
   goDetail(e) {
     const id = e.currentTarget.dataset.id
-    wx.navigateTo({ url: `/pkg-detail/pages/recipe-detail/index?id=${id}` })
+    wx.navigateTo({ url: `${PAGES.RECIPE_DETAIL}?id=${id}` })
   }
 })

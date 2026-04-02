@@ -1,4 +1,6 @@
 const { normalizeImageUrl, resolveImageUrls } = require('../../utils/image')
+const { getStorage } = require('../../api/request')
+const { STORAGE_KEYS } = require('../../constants/index')
 const ENTRY_FILE_ID = 'cloud://cloud1-8g4fsimf73eedcfd.636c-cloud1-8g4fsimf73eedcfd-1410266719/assistant/assistant-main.webp'
 const SONGNIAN_BG_FILE_ID = 'cloud://cloud1-8g4fsimf73eedcfd.636c-cloud1-8g4fsimf73eedcfd-1410266719/assistant/songnian-bg.webp'
 const QINGHE_BG_FILE_ID = 'cloud://cloud1-8g4fsimf73eedcfd.636c-cloud1-8g4fsimf73eedcfd-1410266719/assistant/qinghe-bg.webp'
@@ -185,8 +187,7 @@ Page({
     this.setData({ [`assistantAvatars.${role}`]: '' })
   },
   syncUserProfile() {
-    let p = {}
-    try { p = wx.getStorageSync('userProfile') || {} } catch (_) { p = {} }
+    const p = getStorage(STORAGE_KEYS.USER_PROFILE) || {}
     const avatarUrl = normalizeImageUrl(p.avatarUrl || '')
     this.setData({
       userProfile: {

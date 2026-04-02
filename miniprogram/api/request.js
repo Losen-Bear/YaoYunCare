@@ -1,12 +1,10 @@
 const env = require('../config/env')
+const { STORAGE_KEYS, API_ROUTES, CLOUD_FUNCTIONS } = require('../constants/index')
 const useCloud = env.useCloud !== false
 let cloudAvailable = true
 
 function mapToCloudFunction(url) {
-  if (url === '/api/constitution/judge-with-recipes') return 'judgeWithRecipes'
-  if (url === '/api/health/check') return 'health'
-  if (url === '/api/auth/wx-login') return 'login'
-  return ''
+  return CLOUD_FUNCTIONS[url] || ''
 }
 
 function normalizeResponse(body) {
@@ -14,15 +12,41 @@ function normalizeResponse(body) {
   return body
 }
 
+function getStorage(key) {
+  if (typeof wx === 'undefined' || !wx || !wx.getStorageSync) return ''
+  try {
+    return wx.getStorageSync(key)
+  } catch (err) {
+    void err
+    return ''
+  }
+}
+
+function setStorage(key, value) {
+  if (typeof wx === 'undefined' || !wx || !wx.setStorageSync) return
+  try {
+    wx.setStorageSync(key, value)
+  } catch (err) {
+    void err
+  }
+}
+
+function extractOpenid(data) {
+  if (!data || typeof data !== 'object') return ''
+  if (data.openid) return data.openid
+  if (data.data && data.data.openid) return data.data.openid
+  return ''
+}
+
 function request({ url, data = {}, showLoading = true }) {
   return new Promise((resolve, reject) => {
-    if (useCloud && wx && wx.cloud && cloudAvailable) {
+    if (useCloud && typeof wx !== 'undefined' && wx && wx.cloud && cloudAvailable) {
       const name = mapToCloudFunction(url)
       if (!name) return reject(new Error(`未映射的云函数: ${url}`))
       let payload = data || {}
       if (name !== 'login') {
         try {
-          const openid = wx.getStorageSync('openid') || ''
+          const openid = getStorage(STORAGE_KEYS.OPENID) || ''
           if (openid) payload = { ...payload, openid }
         } catch (err) { void err }
       }
@@ -39,4 +63,46 @@ function request({ url, data = {}, showLoading = true }) {
   })
 }
 
-module.exports = { request }
+function loginWithCode(code, showLoading = false) {
+  const payload = code ? { code } : {}
+  return request({ url: API_ROUTES.AUTH_WX_LOGIN, data: payload, showLoading })
+}
+
+function ensureOpenid({ forceRefresh = false, showLoading = false } = {}) {
+  return new Promise((resolve, reject) => {
+    const cachedOpenid = getStorage(STORAGE_KEYS.OPENID) || ''
+    if (cachedOpenid && !forceRefresh) {
+      resolve(cachedOpenid)
+      return
+    }
+    if (typeof wx === 'undefined' || !wx || !wx.login) {
+      reject(new Error('当前环境不支持 wx.login'))
+      return
+    }
+    wx.login({
+      success: (resp) => {
+        const code = resp && resp.code ? resp.code : ''
+        loginWithCode(code, showLoading)
+          .then((res) => {
+            const openid = extractOpenid(res)
+            if (!openid) {
+              reject(new Error('openid 获取失败'))
+              return
+            }
+            setStorage(STORAGE_KEYS.OPENID, openid)
+            resolve(openid)
+          })
+          .catch((err) => reject(err))
+      },
+      fail: () => reject(new Error('系统登录失败'))
+    })
+  })
+}
+
+module.exports = {
+  request,
+  ensureOpenid,
+  extractOpenid,
+  getStorage,
+  setStorage
+}
