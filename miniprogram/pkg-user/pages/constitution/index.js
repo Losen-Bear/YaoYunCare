@@ -1,4 +1,4 @@
-const { getRecipeImage, defaultCover } = require('../../../utils/image')
+const { getRecipeImage, defaultCover, resolveImageUrls } = require('../../../utils/image')
 
 Page({
   data: {
@@ -7,6 +7,10 @@ Page({
     recipesList: [],
     grouped: {},
     recipeImageBrokenMap: {},
+    groupedVisible: {},
+    showCountMap: {},
+    detailExpandedMap: {},
+    guideExpandedMap: {},
     percent: 0,
     defaultCover,
     result: {},
@@ -44,6 +48,53 @@ Page({
       平和质: { 宜吃: ['均衡饮食'], 忌吃: ['过食辛辣'], 运动: ['适量运动'], 少做: ['过劳'] }
     }
   },
+  buildPreviewText(arr, maxLen) {
+    const text = Array.isArray(arr) ? arr.join('、') : ''
+    if (!text) return ''
+    if (text.length <= maxLen) return text
+    return `${text.slice(0, maxLen)}...`
+  },
+  async hydrateRecipeImageUrls(list) {
+    const srcList = list.map((x) => x.image_url || '')
+    const resolved = await resolveImageUrls(srcList)
+    return list.map((item, idx) => ({
+      ...item,
+      image_url: resolved[idx] || item.image_url || defaultCover
+    }))
+  },
+  preheatImageCache(list, limit) {
+    if (!wx || !wx.getImageInfo) return
+    const source = Array.isArray(list) ? list : []
+    const max = typeof limit === 'number' && limit > 0 ? limit : 2
+    const selected = []
+    const used = {}
+    source.forEach((item) => {
+      if (selected.length >= max) return
+      const src = item && item.image_url ? item.image_url : ''
+      if (!src || src === defaultCover || used[src]) return
+      used[src] = true
+      selected.push(src)
+    })
+    selected.forEach((src) => {
+      wx.getImageInfo({
+        src,
+        success: () => { void 0 },
+        fail: () => { void 0 }
+      })
+    })
+  },
+  getVisibleCount(type) {
+    const n = this.data.showCountMap[type]
+    return typeof n === 'number' && n > 0 ? n : 2
+  },
+  buildVisibleGrouped(grouped, types) {
+    const next = {}
+    types.forEach((type) => {
+      const list = Array.isArray(grouped[type]) ? grouped[type] : []
+      next[type] = list.slice(0, this.getVisibleCount(type))
+    })
+    return next
+  },
   onLoad(options) {
     const main = decodeURIComponent(options.main || '')
     const typesParam = decodeURIComponent(options.types || '')
@@ -52,18 +103,24 @@ Page({
     if (this.getOpenerEventChannel) {
       const ec = this.getOpenerEventChannel()
       if (ec && ec.on) {
-        ec.on('judge', ({ result, recipes }) => {
+        ec.on('judge', async ({ result, recipes }) => {
           const r = Array.isArray(recipes) ? recipes : []
           const r2 = r.map((x) => {
-            const ing = Array.isArray(x.ingredients) ? x.ingredients.join('、') : ''
-            const stp = Array.isArray(x.steps) ? x.steps.join('；') : ''
-            return { ...x, ingredientsText: ing, stepsText: stp, image_url: x.image_url || getRecipeImage(x.name || '') }
+            const summary = this.buildPreviewText(Array.isArray(x.ingredients) && x.ingredients.length ? x.ingredients : x.steps, 24)
+            return {
+              ...x,
+              summaryText: summary || '点击查看详细做法',
+              image_url: x.image_url || getRecipeImage(x.name || '')
+            }
           })
           const hasPrimary = result && Array.isArray(result.primary) && result.primary.length > 0
           const mainStr = result && result.mainConstitution ? result.mainConstitution : ''
           const t = hasPrimary ? result.primary : (mainStr ? mainStr.split('+') : types)
           const grouped = {}
-          t.forEach((name) => { grouped[name] = r2.filter((x) => x.constitution === name) })
+          t.forEach((name) => { grouped[name] = [] })
+          r2.forEach((x) => {
+            if (grouped[x.constitution]) grouped[x.constitution].push(x)
+          })
           const md = Array.isArray(result && result.matchDetail) ? result.matchDetail : []
           let top = 0
           const cur = t[0] || mainStr || ''
@@ -78,10 +135,52 @@ Page({
             detailTextMap[name] = { b: s(d['表现']), q: s(d['倾向']), x: s(d['性格作息']) }
             guideTextMap[name] = { eat: s(g['宜吃']), avoid: s(g['忌吃']), sport: s(g['运动']), less: s(g['少做']) }
           })
-          this.setData({ recipesList: r2, grouped, percent, result, detailTextMap, guideTextMap })
+          const showCountMap = {}
+          const detailExpandedMap = {}
+          const guideExpandedMap = {}
+          t.forEach((name) => { showCountMap[name] = 2 })
+          t.forEach((name) => { detailExpandedMap[name] = false })
+          t.forEach((name) => { guideExpandedMap[name] = false })
+          const groupedVisible = this.buildVisibleGrouped(grouped, t)
+          this.setData({ percent, result, detailTextMap, guideTextMap, showCountMap, detailExpandedMap, guideExpandedMap, recipesList: [], grouped: {}, groupedVisible: {} })
+          setTimeout(() => {
+            this.setData({ recipesList: r2, grouped, groupedVisible })
+          }, 0)
+          const hydrated = await this.hydrateRecipeImageUrls(r2)
+          const groupedHydrated = {}
+          t.forEach((name) => { groupedHydrated[name] = [] })
+          hydrated.forEach((x) => {
+            if (groupedHydrated[x.constitution]) groupedHydrated[x.constitution].push(x)
+          })
+          this.setData({ recipesList: hydrated, grouped: groupedHydrated, groupedVisible: this.buildVisibleGrouped(groupedHydrated, t) })
+          this.preheatImageCache(hydrated, 2)
         })
       }
     }
+  },
+  toggleSection(e) {
+    const ctype = e.currentTarget.dataset.ctype || ''
+    const section = e.currentTarget.dataset.section || ''
+    if (!ctype) return
+    if (section === 'detail') {
+      const cur = !!this.data.detailExpandedMap[ctype]
+      this.setData({ [`detailExpandedMap.${ctype}`]: !cur })
+      return
+    }
+    if (section === 'guide') {
+      const cur = !!this.data.guideExpandedMap[ctype]
+      this.setData({ [`guideExpandedMap.${ctype}`]: !cur })
+    }
+  },
+  loadMoreRecipes(e) {
+    const ctype = e.currentTarget.dataset.ctype || ''
+    if (!ctype) return
+    const cur = this.getVisibleCount(ctype)
+    const nextCount = cur + 4
+    const showCountMap = { ...this.data.showCountMap, [ctype]: nextCount }
+    const groupedVisible = this.buildVisibleGrouped(this.data.grouped, this.data.types)
+    groupedVisible[ctype] = (this.data.grouped[ctype] || []).slice(0, nextCount)
+    this.setData({ showCountMap, groupedVisible })
   },
   goDetail(e) {
     const id = e.currentTarget.dataset.id
@@ -99,7 +198,7 @@ Page({
       list.unshift(report)
       wx.setStorageSync('savedReports', list.slice(0, 20))
       wx.showToast({ title: '已保存', icon: 'success' })
-    } catch (_) {}
+    } catch (_) { void 0 }
   },
   goBack() {
     wx.navigateBack({ delta: 1 })

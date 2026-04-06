@@ -11,8 +11,11 @@
         <view class="title-tag">重点调理</view>
       </view>
       <view class="desc">{{infos[ctype]}}</view>
-      <view class="sub">体质解读</view>
-      <view class="symptom-grid">
+      <view class="sub-row">
+        <view class="sub">体质解读</view>
+        <button class="toggle-btn" size="mini" data-ctype="{{ctype}}" data-section="detail" bindtap="toggleSection">{{detailExpandedMap[ctype] ? '收起' : '展开'}}</button>
+      </view>
+      <view wx:if="{{detailExpandedMap[ctype]}}" class="symptom-grid">
         <view class="symptom-item">
           <view class="symptom-label">典型表现</view>
           <view class="symptom-value">{{detailTextMap[ctype] && detailTextMap[ctype].b}}</view>
@@ -26,8 +29,11 @@
           <view class="symptom-value">{{detailTextMap[ctype] && detailTextMap[ctype].x}}</view>
         </view>
       </view>
-      <view class="sub">养生建议</view>
-      <view class="guide-grid">
+      <view class="sub-row">
+        <view class="sub">养生建议</view>
+        <button class="toggle-btn" size="mini" data-ctype="{{ctype}}" data-section="guide" bindtap="toggleSection">{{guideExpandedMap[ctype] ? '收起' : '展开'}}</button>
+      </view>
+      <view wx:if="{{guideExpandedMap[ctype]}}" class="guide-grid">
         <view class="guide-item"><text class="k">宜吃：</text><text class="v">{{guideTextMap[ctype] && guideTextMap[ctype].eat}}</text></view>
         <view class="guide-item"><text class="k">忌吃：</text><text class="v">{{guideTextMap[ctype] && guideTextMap[ctype].avoid}}</text></view>
         <view class="guide-item"><text class="k">宜做运动：</text><text class="v">{{guideTextMap[ctype] && guideTextMap[ctype].sport}}</text></view>
@@ -35,19 +41,19 @@
       </view>
       <view wx:if="{{grouped[ctype] && grouped[ctype].length}}">
         <view class="sub">为你推荐 · 专属药膳</view>
-        <block wx:for="{{grouped[ctype]}}" wx:key="id" wx:for-item="recipe">
+        <block wx:for="{{groupedVisible[ctype]}}" wx:key="id" wx:for-item="recipe">
           <view class="recipe-card">
             <image class="cover" src="{{recipeImageBrokenMap[ctype + '_' + (recipe.id || index)] ? defaultCover : (recipe.image_url || defaultCover)}}" mode="aspectFill" lazy-load="true" webp="{{true}}" binderror="onRecipeImageError" data-key="{{ctype + '_' + (recipe.id || index)}}"></image>
             <view class="recipe-info">
               <view class="r-name">{{recipe.name}}</view>
-              <view class="r-meta">食材：{{recipe.ingredientsText}}</view>
-              <view class="r-meta">做法：{{recipe.stepsText}}</view>
+              <view class="r-meta r-meta-single">摘要：{{recipe.summaryText}}</view>
               <view class="r-actions">
                 <button size="mini" data-id="{{recipe.id}}" bindtap="goDetail">查看做法</button>
               </view>
             </view>
           </view>
         </block>
+        <button wx:if="{{groupedVisible[ctype] && groupedVisible[ctype].length < grouped[ctype].length}}" size="mini" data-ctype="{{ctype}}" bindtap="loadMoreRecipes">查看更多</button>
       </view>
     </view>
   </block>
