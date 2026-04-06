@@ -1,6 +1,7 @@
 <view class="container">
   <view wx:if="{{entryVisible}}" class="entry-layer">
     <image
+      wx:if="{{entryImage}}"
       class="entry-image {{entryReveal ? 'entry-image-reveal' : ''}}"
       src="{{entryImage}}"
       mode="aspectFill"
@@ -10,20 +11,27 @@
   </view>
   <view class="background-layer">
     <image
-      wx:if="{{messages.length === 0}}"
+      wx:if="{{messages.length === 0 && idleBackgroundImage}}"
       class="background-image background-image-show background-image-active"
       src="{{idleBackgroundImage}}"
       mode="aspectFill"
+      binderror="onIdleBackgroundError"
     ></image>
     <image
+      wx:if="{{backgroundImages.songnian}}"
       class="background-image {{roleBackgroundVisible.songnian ? 'background-image-show' : ''}} {{activeSpeakerRole === 'songnian' ? 'background-image-active' : ''}}"
       src="{{backgroundImages.songnian}}"
       mode="aspectFill"
+      data-role="songnian"
+      binderror="onBackgroundImageError"
     ></image>
     <image
+      wx:if="{{backgroundImages.qinghe}}"
       class="background-image {{roleBackgroundVisible.qinghe ? 'background-image-show' : ''}} {{activeSpeakerRole === 'qinghe' ? 'background-image-active' : ''}}"
       src="{{backgroundImages.qinghe}}"
       mode="aspectFill"
+      data-role="qinghe"
+      binderror="onBackgroundImageError"
     ></image>
     <view class="background-mask"></view>
   </view>
@@ -48,6 +56,8 @@
               class="avatar-image"
               src="{{item.avatarUrl}}"
               mode="aspectFill"
+              data-role="{{item.role}}"
+              binderror="onAssistantAvatarError"
             ></image>
             <text wx:else>{{item.role === 'songnian' ? '松' : '青'}}</text>
           </view>

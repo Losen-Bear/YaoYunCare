@@ -5,7 +5,7 @@
   height: 100vh;
   background-color: #F8F5EF;
   color: #2f2a24;
-  padding: 20rpx 24rpx calc(env(safe-area-inset-bottom) + 20rpx);
+  padding: 20rpx 24rpx calc(env(safe-area-inset-bottom) + 132rpx);
   box-sizing: border-box;
   overflow: hidden;
 }

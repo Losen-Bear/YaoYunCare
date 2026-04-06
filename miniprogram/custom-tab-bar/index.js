@@ -1,25 +1,26 @@
 const { resolveImageUrls } = require('../utils/image')
+const { PAGES } = require('../constants/index')
 const TAB_ITEMS = [
   {
-    pagePath: "/pages/home/index",
+    pagePath: PAGES.HOME,
     text: "首页",
     iconPath: "cloud://cloud1-8g4fsimf73eedcfd.636c-cloud1-8g4fsimf73eedcfd-1410266719/home/top-1.webp",
     selectedIconPath: "cloud://cloud1-8g4fsimf73eedcfd.636c-cloud1-8g4fsimf73eedcfd-1410266719/home/top-1.webp"
   },
   {
-    pagePath: "/pages/recipes/index",
+    pagePath: PAGES.RECIPES,
     text: "药膳馆",
     iconPath: "cloud://cloud1-8g4fsimf73eedcfd.636c-cloud1-8g4fsimf73eedcfd-1410266719/home/top-2.webp",
     selectedIconPath: "cloud://cloud1-8g4fsimf73eedcfd.636c-cloud1-8g4fsimf73eedcfd-1410266719/home/top-2.webp"
   },
   {
-    pagePath: "/pages/assistant/index",
+    pagePath: PAGES.ASSISTANT,
     text: "药膳助手",
     iconPath: "cloud://cloud1-8g4fsimf73eedcfd.636c-cloud1-8g4fsimf73eedcfd-1410266719/home/top-3.webp",
     selectedIconPath: "cloud://cloud1-8g4fsimf73eedcfd.636c-cloud1-8g4fsimf73eedcfd-1410266719/home/top-3.webp"
   },
   {
-    pagePath: "/pages/profile/index",
+    pagePath: PAGES.PROFILE,
     text: "我的",
     iconPath: "cloud://cloud1-8g4fsimf73eedcfd.636c-cloud1-8g4fsimf73eedcfd-1410266719/home/top-4.webp",
     selectedIconPath: "cloud://cloud1-8g4fsimf73eedcfd.636c-cloud1-8g4fsimf73eedcfd-1410266719/home/top-4.webp"

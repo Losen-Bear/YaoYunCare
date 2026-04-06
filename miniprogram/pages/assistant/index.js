@@ -1,4 +1,6 @@
 const { normalizeImageUrl, resolveImageUrls } = require('../../utils/image')
+const { getStorage } = require('../../api/request')
+const { STORAGE_KEYS } = require('../../constants/index')
 const ENTRY_FILE_ID = 'cloud://cloud1-8g4fsimf73eedcfd.636c-cloud1-8g4fsimf73eedcfd-1410266719/assistant/assistant-main.webp'
 const SONGNIAN_BG_FILE_ID = 'cloud://cloud1-8g4fsimf73eedcfd.636c-cloud1-8g4fsimf73eedcfd-1410266719/assistant/songnian-bg.webp'
 const QINGHE_BG_FILE_ID = 'cloud://cloud1-8g4fsimf73eedcfd.636c-cloud1-8g4fsimf73eedcfd-1410266719/assistant/qinghe-bg.webp'
@@ -80,17 +82,17 @@ Page({
     defaultAvatar: 'https://res.wx.qq.com/op_res/Y3uW5mC3E-placeholder-avatar.png',
     entryVisible: true,
     entryReveal: false,
-    entryImage: ENTRY_FILE_ID,
-    idleBackgroundImage: ENTRY_FILE_ID,
+    entryImage: '',
+    idleBackgroundImage: '',
     activeSpeakerRole: '',
     roleBackgroundVisible: { songnian: false, qinghe: false },
     backgroundImages: {
-      songnian: SONGNIAN_BG_FILE_ID,
-      qinghe: QINGHE_BG_FILE_ID
+      songnian: '',
+      qinghe: ''
     },
     assistantAvatars: {
-      songnian: SONGNIAN_AVATAR_FILE_ID,
-      qinghe: QINGHE_AVATAR_FILE_ID
+      songnian: '',
+      qinghe: ''
     }
   },
   onLoad() {
@@ -100,15 +102,15 @@ Page({
     const urls = [ENTRY_FILE_ID, SONGNIAN_BG_FILE_ID, QINGHE_BG_FILE_ID, SONGNIAN_AVATAR_FILE_ID, QINGHE_AVATAR_FILE_ID]
     const resolved = await resolveImageUrls(urls)
     this.setData({
-      entryImage: resolved[0] || ENTRY_FILE_ID,
-      idleBackgroundImage: resolved[0] || ENTRY_FILE_ID,
+      entryImage: resolved[0] || '',
+      idleBackgroundImage: resolved[0] || '',
       backgroundImages: {
-        songnian: resolved[1] || SONGNIAN_BG_FILE_ID,
-        qinghe: resolved[2] || QINGHE_BG_FILE_ID
+        songnian: resolved[1] || '',
+        qinghe: resolved[2] || ''
       },
       assistantAvatars: {
-        songnian: resolved[3] || SONGNIAN_AVATAR_FILE_ID,
-        qinghe: resolved[4] || QINGHE_AVATAR_FILE_ID
+        songnian: resolved[3] || '',
+        qinghe: resolved[4] || ''
       }
     })
   },
@@ -150,19 +152,42 @@ Page({
     }, ENTRY_DURATION))
   },
   onEntryImageError() {
-    const songnian = (this.data.backgroundImages && this.data.backgroundImages.songnian) || SONGNIAN_BG_FILE_ID
-    const qinghe = (this.data.backgroundImages && this.data.backgroundImages.qinghe) || QINGHE_BG_FILE_ID
-    if (this.data.entryImage !== songnian) {
+    const songnian = (this.data.backgroundImages && this.data.backgroundImages.songnian) || ''
+    const qinghe = (this.data.backgroundImages && this.data.backgroundImages.qinghe) || ''
+    if (songnian && this.data.entryImage !== songnian) {
       this.setData({ entryImage: songnian })
       return
     }
-    if (this.data.entryImage !== qinghe) {
+    if (qinghe && this.data.entryImage !== qinghe) {
       this.setData({ entryImage: qinghe })
+      return
+    }
+    if (this.data.entryImage) {
+      this.setData({ entryImage: '' })
     }
   },
+  onIdleBackgroundError() {
+    if (this.data.idleBackgroundImage) this.setData({ idleBackgroundImage: '' })
+  },
+  onBackgroundImageError(e) {
+    const role = e && e.currentTarget && e.currentTarget.dataset ? e.currentTarget.dataset.role : ''
+    if (role !== 'songnian' && role !== 'qinghe') return
+    const next = this.data.backgroundImages || {}
+    if (!next[role]) return
+    this.setData({
+      [`backgroundImages.${role}`]: '',
+      [`roleBackgroundVisible.${role}`]: false
+    })
+  },
+  onAssistantAvatarError(e) {
+    const role = e && e.currentTarget && e.currentTarget.dataset ? e.currentTarget.dataset.role : ''
+    if (role !== 'songnian' && role !== 'qinghe') return
+    const avatars = this.data.assistantAvatars || {}
+    if (!avatars[role]) return
+    this.setData({ [`assistantAvatars.${role}`]: '' })
+  },
   syncUserProfile() {
-    let p = {}
-    try { p = wx.getStorageSync('userProfile') || {} } catch (_) { p = {} }
+    const p = getStorage(STORAGE_KEYS.USER_PROFILE) || {}
     const avatarUrl = normalizeImageUrl(p.avatarUrl || '')
     this.setData({
       userProfile: {

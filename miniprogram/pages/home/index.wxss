@@ -1,4 +1,4 @@
-.page{padding-bottom:40rpx}
+.page{min-height:100vh;box-sizing:border-box;padding-bottom:calc(env(safe-area-inset-bottom) + 132rpx)}
 .topbar{position:sticky;top:0;z-index:10;height:88rpx;background:#2F5E3D;color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 20rpx}
 .topbar .left{width:64rpx;height:64rpx;border-radius:12rpx;background:#C8AD66;color:#2F5E3D;display:flex;align-items:center;justify-content:center;font-weight:700;overflow:hidden}
 .topbar .left-logo{width:100%;height:100%;border-radius:12rpx}
