@@ -1,10 +1,14 @@
+const { getRecipeImage, defaultCover } = require('../../../utils/image')
+
 Page({
   data: {
     main: '',
     types: [],
     recipesList: [],
     grouped: {},
+    recipeImageBrokenMap: {},
     percent: 0,
+    defaultCover,
     result: {},
     infos: {
       平和质: '体形匀称，精力充沛，面色红润，情绪稳定。建议保持规律作息、均衡饮食、适量运动，继续巩固良好状态。',
@@ -53,7 +57,7 @@ Page({
           const r2 = r.map((x) => {
             const ing = Array.isArray(x.ingredients) ? x.ingredients.join('、') : ''
             const stp = Array.isArray(x.steps) ? x.steps.join('；') : ''
-            return { ...x, ingredientsText: ing, stepsText: stp }
+            return { ...x, ingredientsText: ing, stepsText: stp, image_url: x.image_url || getRecipeImage(x.name || '') }
           })
           const hasPrimary = result && Array.isArray(result.primary) && result.primary.length > 0
           const mainStr = result && result.mainConstitution ? result.mainConstitution : ''
@@ -82,6 +86,11 @@ Page({
   goDetail(e) {
     const id = e.currentTarget.dataset.id
     wx.navigateTo({ url: `/pkg-detail/pages/recipe-detail/index?id=${id}` })
+  },
+  onRecipeImageError(e) {
+    const key = e.currentTarget.dataset.key || ''
+    if (!key) return
+    this.setData({ [`recipeImageBrokenMap.${key}`]: true })
   },
   saveReport() {
     try {

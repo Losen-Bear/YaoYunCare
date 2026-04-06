@@ -33,7 +33,7 @@ module.exports = {
             </radio-group>
           </block>
           <block wx:elif="{{item.type==='single'}}">
-            <radio-group class="opts" bindchange="onSingle">
+            <radio-group class="opts" bindchange="onSingle" data-qid="{{item.id}}">
               <label class="radio {{profile.exercise==='几乎不运动' ? 'checked' : ''}}">
                 <radio value="几乎不运动" checked="{{profile.exercise==='几乎不运动'}}" color="#2F5E3D" />几乎不运动
               </label>
@@ -49,7 +49,7 @@ module.exports = {
             </radio-group>
           </block>
           <block wx:elif="{{item.type==='multi'}}">
-            <checkbox-group class="opts" bindchange="onMulti">
+            <checkbox-group class="opts" bindchange="onMulti" data-qid="{{item.id}}">
               <label
                 wx:for="{{item.options}}"
                 wx:for-item="opt"
@@ -65,6 +65,6 @@ module.exports = {
     </block>
   </swiper>
   <view class="actions">
-    <button class="btn-submit" type="primary" bindtap="onSubmit" disabled="{{!allAnswered}}">提交检测</button>
+    <button class="btn-submit" type="primary" bindtap="onSubmit">提交检测</button>
   </view>
 </view>
