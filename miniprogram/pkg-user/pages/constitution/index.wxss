@@ -1,0 +1,30 @@
+.container{padding:20rpx 16rpx 28rpx;background:#F8F5EF;min-height:100vh;box-sizing:border-box}
+.hero-card{background:linear-gradient(135deg,#2F5E3D,#3A724A);border-radius:18rpx;padding:24rpx;color:#fff;box-shadow:0 10rpx 22rpx rgba(47,94,61,0.22);margin-bottom:16rpx}
+.hero-title{font-size:24rpx;opacity:.9;margin-bottom:6rpx}
+.big{font-size:36rpx;font-weight:600;line-height:1.4}
+.score{font-size:26rpx;opacity:.95;margin-top:6rpx}
+.card{background:#FCFAF3;border:1px solid #E0D6C2;border-radius:16rpx;padding:18rpx;margin-bottom:16rpx}
+.title-row{display:flex;justify-content:space-between;align-items:center;gap:12rpx}
+.title{font-size:34rpx;font-weight:600;color:#2F2F2F}
+.title-tag{font-size:22rpx;color:#2F5E3D;background:#E9F3EB;border:1px solid #CFE2D3;border-radius:999rpx;padding:4rpx 14rpx}
+.desc{font-size:26rpx;line-height:1.7;color:#444;margin-top:12rpx}
+.sub{font-size:28rpx;font-weight:600;color:#2F5E3D;margin-top:16rpx;margin-bottom:10rpx}
+.sub-row{display:flex;align-items:center;justify-content:space-between;gap:12rpx}
+.sub-row .sub{margin-bottom:10rpx}
+.toggle-btn{font-size:22rpx;line-height:1;border-radius:999rpx;color:#2F5E3D;border:1px solid #CFE2D3;background:#F1F7F2;padding:6rpx 16rpx}
+.symptom-grid{display:grid;grid-template-columns:1fr;gap:10rpx}
+.symptom-item{background:#F7F3EA;border:1px solid #E8DDC9;border-radius:12rpx;padding:12rpx}
+.symptom-label{font-size:24rpx;color:#7A6441;margin-bottom:6rpx}
+.symptom-value{font-size:26rpx;color:#2F2F2F;line-height:1.6}
+.guide-grid{display:grid;grid-template-columns:1fr;gap:8rpx}
+.guide-item{font-size:26rpx;line-height:1.65;color:#2F2F2F;background:#FAF7F0;border-radius:10rpx;padding:10rpx 12rpx}
+.guide-item .k{color:#2F5E3D;font-weight:600}
+.recipe-card{display:flex;gap:12rpx;background:#FAF7F0;border:1px solid #E0D6C2;border-radius:12rpx;padding:12rpx;margin-bottom:12rpx}
+.cover{width:160rpx;height:160rpx;border-radius:10rpx;background:#EDE4D5;flex:0 0 auto}
+.recipe-info{flex:1;min-width:0}
+.r-name{font-size:30rpx;font-weight:600;color:#2F2F2F;margin-bottom:8rpx}
+.r-meta{font-size:24rpx;color:#555;line-height:1.6;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.r-meta-single{display:block;white-space:nowrap;text-overflow:ellipsis;overflow:hidden;line-height:1.5}
+.r-actions{margin-top:10rpx}
+.actions{position:sticky;bottom:0;display:flex;gap:12rpx;padding:12rpx 0 2rpx;background:linear-gradient(to top,#F8F5EF 72%,rgba(248,245,239,0))}
+.actions button{flex:1;border-radius:10rpx;font-size:28rpx}

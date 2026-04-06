@@ -1,36 +1,59 @@
 <view class="container">
   <view class="hero-card">
+    <view class="hero-title">体质检测结果</view>
     <view class="big">你的体质：{{main}}</view>
     <view class="score">体质匹配度：{{percent}}%</view>
   </view>
-  <block wx:for="{{types}}" wx:key="*this">
+  <block wx:for="{{types}}" wx:key="*this" wx:for-item="ctype">
     <view class="card">
-      <view class="title">{{item}}</view>
-      <view class="content">{{infos[item]}}</view>
-      <view class="sub">体质解读</view>
-      <view class="content">
-        <view>典型表现：{{detailTextMap[item] && detailTextMap[item].b}}</view>
-        <view>身体倾向：{{detailTextMap[item] && detailTextMap[item].q}}</view>
-        <view>性格与作息：{{detailTextMap[item] && detailTextMap[item].x}}</view>
+      <view class="title-row">
+        <view class="title">{{ctype}}</view>
+        <view class="title-tag">重点调理</view>
       </view>
-      <view class="sub">养生建议</view>
-      <view class="content">
-        <view>宜吃：{{guideTextMap[item] && guideTextMap[item].eat}}</view>
-        <view>忌吃：{{guideTextMap[item] && guideTextMap[item].avoid}}</view>
-        <view>宜做运动：{{guideTextMap[item] && guideTextMap[item].sport}}</view>
-        <view>少做：{{guideTextMap[item] && guideTextMap[item].less}}</view>
+      <view class="desc">{{infos[ctype]}}</view>
+      <view class="sub-row">
+        <view class="sub">体质解读</view>
+        <button class="toggle-btn" size="mini" data-ctype="{{ctype}}" data-section="detail" bindtap="toggleSection">{{detailExpandedMap[ctype] ? '收起' : '展开'}}</button>
       </view>
-      <view wx:if="{{grouped[item] && grouped[item].length}}">
+      <view wx:if="{{detailExpandedMap[ctype]}}" class="symptom-grid">
+        <view class="symptom-item">
+          <view class="symptom-label">典型表现</view>
+          <view class="symptom-value">{{detailTextMap[ctype] && detailTextMap[ctype].b}}</view>
+        </view>
+        <view class="symptom-item">
+          <view class="symptom-label">身体倾向</view>
+          <view class="symptom-value">{{detailTextMap[ctype] && detailTextMap[ctype].q}}</view>
+        </view>
+        <view class="symptom-item">
+          <view class="symptom-label">性格与作息</view>
+          <view class="symptom-value">{{detailTextMap[ctype] && detailTextMap[ctype].x}}</view>
+        </view>
+      </view>
+      <view class="sub-row">
+        <view class="sub">养生建议</view>
+        <button class="toggle-btn" size="mini" data-ctype="{{ctype}}" data-section="guide" bindtap="toggleSection">{{guideExpandedMap[ctype] ? '收起' : '展开'}}</button>
+      </view>
+      <view wx:if="{{guideExpandedMap[ctype]}}" class="guide-grid">
+        <view class="guide-item"><text class="k">宜吃：</text><text class="v">{{guideTextMap[ctype] && guideTextMap[ctype].eat}}</text></view>
+        <view class="guide-item"><text class="k">忌吃：</text><text class="v">{{guideTextMap[ctype] && guideTextMap[ctype].avoid}}</text></view>
+        <view class="guide-item"><text class="k">宜做运动：</text><text class="v">{{guideTextMap[ctype] && guideTextMap[ctype].sport}}</text></view>
+        <view class="guide-item"><text class="k">少做：</text><text class="v">{{guideTextMap[ctype] && guideTextMap[ctype].less}}</text></view>
+      </view>
+      <view wx:if="{{grouped[ctype] && grouped[ctype].length}}">
         <view class="sub">为你推荐 · 专属药膳</view>
-        <block wx:for="{{grouped[item]}}" wx:key="id">
-          <view class="recipe">
-            <view class="r-name">{{item.name}}</view>
-            <video wx:if="{{item.video_url}}" class="video" src="{{item.video_url}}" controls></video>
-            <view class="r-section">食材：{{item.ingredientsText}}</view>
-            <view class="r-section">步骤：{{item.stepsText}}</view>
-            <button size="mini" data-id="{{item.id}}" bindtap="goDetail">查看做法</button>
+        <block wx:for="{{groupedVisible[ctype]}}" wx:key="id" wx:for-item="recipe">
+          <view class="recipe-card">
+            <image class="cover" src="{{recipeImageBrokenMap[ctype + '_' + (recipe.id || index)] ? defaultCover : (recipe.image_url || defaultCover)}}" mode="aspectFill" lazy-load="true" webp="{{true}}" binderror="onRecipeImageError" data-key="{{ctype + '_' + (recipe.id || index)}}"></image>
+            <view class="recipe-info">
+              <view class="r-name">{{recipe.name}}</view>
+              <view class="r-meta r-meta-single">摘要：{{recipe.summaryText}}</view>
+              <view class="r-actions">
+                <button size="mini" data-id="{{recipe.id}}" bindtap="goDetail">查看做法</button>
+              </view>
+            </view>
           </view>
         </block>
+        <button wx:if="{{groupedVisible[ctype] && groupedVisible[ctype].length < grouped[ctype].length}}" size="mini" data-ctype="{{ctype}}" bindtap="loadMoreRecipes">查看更多</button>
       </view>
     </view>
   </block>

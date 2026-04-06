@@ -36,7 +36,8 @@ Page({
     cur: 0,
     total: 20,
     allAnswered: false,
-    openid: ''
+    openid: '',
+    pendingUnanswered: []
   },
   stopSwiper() {},
   onLoad() {
@@ -62,20 +63,25 @@ Page({
     const map = { ...this.data.answersYN, [qid]: val }
     this.setData({ answersYN: map })
     this.recalc()
-    this.autoNext()
+    const guided = this.jumpToNextPendingUnanswered(qid)
+    if (!guided) this.autoNext()
   },
   onSingle(e) {
+    const qid = Number(e.currentTarget.dataset.qid)
     const v = e.detail.value || ''
     const p = { ...this.data.profile, exercise: v }
     this.setData({ profile: p })
     this.recalc()
-    this.autoNext()
+    const guided = this.jumpToNextPendingUnanswered(qid)
+    if (!guided) this.autoNext()
   },
   onMulti(e) {
+    const qid = Number(e.currentTarget.dataset.qid)
     const arr = e.detail.value || []
     const p = { ...this.data.profile, diet: arr }
     this.setData({ profile: p })
     this.recalc()
+    this.jumpToNextPendingUnanswered(qid)
   },
   autoNext() {
     setTimeout(() => {
@@ -85,22 +91,77 @@ Page({
     }, 400)
   },
   recalc() {
-    const list = this.data.qList
-    let answered = 0
-    for (const it of list) {
-      if (it.type === 'yn' && Object.prototype.hasOwnProperty.call(this.data.answersYN, it.id)) answered += 1
-      if (it.type === 'single' && this.data.profile.exercise) answered += 1
-      if (it.type === 'multi' && Array.isArray(this.data.profile.diet) && this.data.profile.diet.length > 0) answered += 1
-    }
+    const answered = this.getAnsweredCount()
     const allAnswered = answered >= this.data.total
     this.setData({ allAnswered })
+  },
+  isQuestionAnswered(question) {
+    if (!question) return false
+    if (question.type === 'yn') return Object.prototype.hasOwnProperty.call(this.data.answersYN, question.id)
+    if (question.type === 'single') return !!this.data.profile.exercise
+    if (question.type === 'multi') return Array.isArray(this.data.profile.diet) && this.data.profile.diet.length > 0
+    return false
+  },
+  getUnansweredQuestionIndices() {
+    const list = this.data.qList
+    const missing = []
+    for (let i = 0; i < list.length; i += 1) {
+      if (!this.isQuestionAnswered(list[i])) missing.push(i)
+    }
+    return missing
+  },
+  promptFirstUnanswered(unanswered) {
+    if (!Array.isArray(unanswered) || unanswered.length === 0) return
+    const qIndex = unanswered[0]
+    const numbers = unanswered.map((i) => i + 1)
+    const text = numbers.join('、')
+    wx.showModal({
+      title: '提示',
+      content: `您还有第${text}题没有作答`,
+      confirmText: '去作答',
+      cancelText: '取消',
+      success: (res) => {
+        if (!res.confirm) return
+        this.setData({ cur: qIndex })
+      }
+    })
+  },
+  jumpToNextPendingUnanswered(qid) {
+    const pending = Array.isArray(this.data.pendingUnanswered) ? this.data.pendingUnanswered : []
+    if (pending.length === 0) return false
+    const list = this.data.qList
+    const idx = list.findIndex((q) => q.id === qid)
+    if (idx < 0 || !this.isQuestionAnswered(list[idx])) return false
+    const remaining = pending.filter((i) => i !== idx && !this.isQuestionAnswered(list[i]))
+    this.setData({ pendingUnanswered: remaining })
+    if (remaining.length === 0) return false
+    const next = remaining[0]
+    if (next !== this.data.cur) {
+      setTimeout(() => { this.setData({ cur: next }) }, 280)
+    }
+    return true
+  },
+  getAnsweredCount() {
+    const list = this.data.qList
+    let answered = 0
+    for (const it of list) { if (this.isQuestionAnswered(it)) answered += 1 }
+    return answered
   },
   goBack() {
     wx.navigateBack({ delta: 1 })
   },
   onSubmit() {
     if (!this.data.openid) { wx.showToast({ title: '请先登录', icon: 'none' }); return }
-    if (!this.data.allAnswered) { wx.showToast({ title: '请完成所有题目', icon: 'none' }); return }
+    const answered = this.getAnsweredCount()
+    const allAnswered = answered >= this.data.total
+    if (!allAnswered) {
+      this.setData({ allAnswered: false })
+      const unanswered = this.getUnansweredQuestionIndices()
+      this.setData({ pendingUnanswered: unanswered })
+      this.promptFirstUnanswered(unanswered)
+      return
+    }
+    this.setData({ allAnswered: true, pendingUnanswered: [] })
     const payload = { answers: this.data.answersYN }
     setStorage(STORAGE_KEYS.LAST_ANSWERS, this.data.answersYN)
     request({ url: API_ROUTES.CONSTITUTION_JUDGE_WITH_RECIPES, method: 'POST', data: payload })
